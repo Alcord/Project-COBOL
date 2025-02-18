@@ -9,12 +9,8 @@
        DATA DIVISION.
        FILE SECTION.
        WORKING-STORAGE SECTION.
-       01   DB-CONN.
-           05  DB-USER                 PIC X(20) VALUE 'mysql'.
-           05  DB-PASSWORD             PIC X(20) VALUE 'root'.
-           05  DB-NAME                 PIC X(20) VALUE 'banco'.
-           05  DB-HOST                 PIC X(20) VALUE 'localhost'.
-           05  DB-PORT                 PIC 9(5)  VALUE 3306.
+
+       COPY "BD001".
 
        EXEC SQL
            BEGIN DECLARE SECTION
@@ -43,8 +39,6 @@
                10  ACTIVA                    PIC 9(1).
                10  FECHA-CIERRE              PIC X(10).
                10  SALDO                     PIC 9(12)V99.
-
-
 
            EXEC SQL
                END DECLARE SECTION
@@ -93,15 +87,7 @@
                05  WS-SALDO                     PIC 9(12)V99.
 
        01  WS-OPTION                            PIC 9 VALUE 0.
-
-       *>01  WS-FECHA-RAW   PIC X(6).
-
-       *> 01  WS-FECHA-FORMAT.
-           *> 02  WS-YYYY    PIC 9(4).
-           *> 02  WS-SEP1    PIC X VALUE "-".
-           *> 02  WS-MM      PIC 99.
-           *> 02  WS-SEP2    PIC X VALUE "-".
-           *> 02  WS-DD      PIC 99.
+       01  WS-SALDO-PRNT                        PIC Z9(12),99.
 
        LINKAGE SECTION.
        01  LK-OPTION PIC 9(1).
@@ -144,11 +130,8 @@
        0200-PROCEDIMIENTO.
 
        0210-CLIENTES.
-       *>    MENU TITLE
-           GO TO 0240-UPDT-CLIENT
-
-           INITIALIZE WS-OPTION.
-           MOVE "Menu clientes" TO WS-TXT-TITLE(07:13).
+           INITIALIZE WS-OPTION WS-TXT-TITLE.
+           MOVE "Menu clientes   " TO WS-TXT-TITLE(07:16).
            MOVE ":Modulos disponibles:" TO WS-TXT-SUBTITLE.
 
            PERFORM 0221-PRINT-MENU.
@@ -162,15 +145,16 @@
                    PERFORM 0210-CLIENTES
                WHEN 2
            *>   Actualizar info Cliente
-                   DISPLAY "Actualizar clientes"
-                   PERFORM 0240-UPDT-CLIENT
+           *>        DISPLAY "Actualizar clientes"
+                   PERFORM 0240-UPDATE-CLIENT
+                   PERFORM 0210-CLIENTES
                WHEN 3
-
+               *> Eliminar clientes
+                   PERFORM 0250-BAJA-CLIENTE
                    PERFORM 0210-CLIENTES
                WHEN 4
-
+                   PERFORM 0260-DETALLE-CLIENTE
                    PERFORM 0210-CLIENTES
-
                WHEN 5
                    PERFORM 0300-FIN
 
@@ -178,7 +162,7 @@
                    DISPLAY "(" WS-OPTION ") - " "Opcion invalida."
                    PERFORM 0210-CLIENTES
 
-           DISPLAY "Salida incorrecta".
+           DISPLAY "DEBUG: (-1) Salida incorrecta".
 
        0221-PRINT-MENU.
            DISPLAY "+" WS-LINE "+".
@@ -193,7 +177,7 @@
            DISPLAY "+" WS-LINE "+".
        0221-END.
 
-       0222-PRINT-UD-MENU.
+       0222-PRINT-UPDATE-MENU.
            DISPLAY "+" WS-LINE "+".
            DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
@@ -236,7 +220,7 @@
            DISPLAY "Inserte el correo:"
            ACCEPT WS-MAIL
 
-           *> Indice para el siguiente registro
+           *> WS-MAX-ID Indice para el siguiente registro
            EXEC SQL
                SELECT MAX(ID_CLIENTE) + 1
                INTO :WS-MAX-ID
@@ -290,7 +274,7 @@
        0231-END.
 
 
-       0232-SEARCH-CLIE.
+       0232-SEARCH-CLIENT.
            MOVE WS-DOCUMENT TO DB-DOCUMENT
 
            EXEC SQL
@@ -300,7 +284,13 @@
                    C.APELLIDOS_CLIENTE,
                    C.DIRECCION_CLIENTE,
                    C.TELEF_CLIENTE,
-                   C.EMAIL_CLIENTE
+                   C.EMAIL_CLIENTE,
+                   C.TARJETA,
+                   C.CREDITO,
+                   C.HIPOTECA,
+                   C.CTA_ACTIVA,
+                   C.SALDO_CLIENTE,
+                   C.FECHA_CIERRE
 
            INTO    :ID-CLIENTE,
                    :DOCUMENT,
@@ -308,23 +298,24 @@
                    :APELLIDO,
                    :DIRECCION,
                    :TELEFONO,
-                   :MAIL
+                   :MAIL,
+                   :TARJETA,
+                   :CREDITO,
+                   :HIPOTECA,
+                   :ACTIVA,
+                   :SALDO,
+                   :FECHA-CIERRE
 
            FROM banco.clientes C
            WHERE C.DOC_CLIENTE = TRIM(:DB-DOCUMENT)
            LIMIT 1
            END-EXEC.
 
-           PERFORM 0291-SQLSTATE-CHECK
-
-           IF SQLCODE NOT EQUAL 0
-           DISPLAY "Client not Found"
-           PERFORM 0240-UPDT-CLIENT
-           END-IF.
-
+           PERFORM 0291-SQLSTATE-CHECK.
        0232-END.
 
-       0233-UTD-CLIENT.
+       0233-UPDATE-DATA-CLIENT.
+           INITIALIZE WS-CLIENT
 
            EVALUATE WS-OPTION
                WHEN 1
@@ -387,53 +378,221 @@
                    DISPLAY "Se ha actualizado la direccion del cliente"
                    END-IF
 
-           END-EVALUATE.
+                WHEN 4
+                   DISPLAY "Inserte nuevo no. de telefono: "
+                   ACCEPT WS-TELEFONO
 
+                   MOVE WS-TELEFONO TO TELEFONO
+
+                   EXEC SQL
+                   UPDATE CLIENTES
+                   SET  TELEF_CLIENTE = TRIM(:TELEFONO)
+                   WHERE ID_CLIENTE =: ID-CLIENTE
+                   END-EXEC
+
+                   PERFORM 0291-SQLSTATE-CHECK
+
+                   PERFORM 0291-COMMIT
+
+                   IF SQLCODE = 0
+                   DISPLAY "Se ha actualizado el telefono del cliente"
+                   END-IF
+
+                WHEN 5
+                   DISPLAY "Inserte nuevo correo electronico: "
+                   ACCEPT WS-MAIL
+
+                   MOVE WS-MAIL TO MAIL
+
+                   EXEC SQL
+                   UPDATE CLIENTES
+                   SET  EMAIL_CLIENTE = TRIM(:MAIL)
+                   WHERE ID_CLIENTE =: ID-CLIENTE
+                   END-EXEC
+
+                   PERFORM 0291-SQLSTATE-CHECK
+
+                   PERFORM 0291-COMMIT
+
+                   IF SQLCODE = 0
+                   DISPLAY "Se ha actualizado el correo del cliente"
+                   END-IF
+
+                WHEN 6
+                   DISPLAY "Regresando..."
+                   EXIT PARAGRAPH
+
+           END-EVALUATE.
        0233-END.
 
 
-
-       0240-UPDT-CLIENT.
+       0240-UPDATE-CLIENT.
            INITIALIZE CLIENT WS-OPTION.
 
            MOVE "Actualizar info." TO WS-TXT-TITLE(07:16).
            DISPLAY "+" WS-LINE "+".
            DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
+           DISPLAY "Ingrese (-1) para salir"
            DISPLAY "Ingrese el Docuemento del cliente:"
            ACCEPT WS-DOCUMENT
 
-           PERFORM 0232-SEARCH-CLIE.
+           MOVE FUNCTION TRIM(WS-DOCUMENT) TO WS-DOCUMENT
+
+           DISPLAY "Documento ingresado:" WS-DOCUMENT "$"
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Clientes..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT.
+
+           IF SQLCODE NOT EQUAL 0
+               DISPLAY "Client not Found"
+               PERFORM 0240-UPDATE-CLIENT
+           END-IF
 
            PERFORM UNTIL WS-OPTION = 6
-               PERFORM 0241-PRNT-MN-UPDT
+               PERFORM 0241-PRNT-MN-UPDATE
                DISPLAY "Dato a actualizar:"
                ACCEPT WS-OPTION
-               PERFORM 0233-UTD-CLIENT
-
+               PERFORM 0233-UPDATE-DATA-CLIENT
            END-PERFORM.
-
-
        0240-END.
 
-       0241-PRNT-MN-UPDT.
+
+       0250-BAJA-CLIENTE.
+           MOVE "Dar de Baja a Cliente" TO WS-TXT-TITLE(03:21)
+           DISPLAY "+" WS-LINE "+"
+           DISPLAY WS-TITLE
+           DISPLAY "+" WS-LINE "+"
+
+           DISPLAY "(-1) Para salir"
+           DISPLAY "Ingrese el Documento del cliente a dar de baja:"
+           ACCEPT WS-DOCUMENT
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Clientes..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT.
+
+           IF SQLCODE NOT EQUAL 0
+               DISPLAY "Client not Found"
+               PERFORM 0250-BAJA-CLIENTE
+           END-IF
+
+           IF TARJETA = 0  AND CREDITO = 0 AND HIPOTECA = 0
+               AND ACTIVA = 1 AND SALDO = 0.00
+               PERFORM 0251-UPDATE-BAJA
+           ELSE
+               PERFORM 0243-ERROR-UPDATE
+               PERFORM 0250-BAJA-CLIENTE
+           END-IF.
+       0250-END.
+
+       0251-UPDATE-BAJA.
+           EXEC SQL
+               UPDATE CLIENTES
+               SET  EMAIL_CLIENTE = TRIM(:MAIL)
+               WHERE ID_CLIENTE =: ID-CLIENTE
+           END-EXEC
+
+           PERFORM 0291-COMMIT
+
+           IF SQLCODE = 0
+               DISPLAY "Se ha dado de baja al cliente"
+           END-IF.
+       0251-END.
+
+       0260-DETALLE-CLIENTE.
+           MOVE "Detalle de cliente" TO WS-TXT-TITLE(04:18)
+           DISPLAY "+" WS-LINE "+"
+           DISPLAY WS-TITLE
+           DISPLAY "+" WS-LINE "+"
+
+           DISPLAY "(-1) Para salir"
+           DISPLAY "Ingrese el Documento del cliente a consultar:"
+           ACCEPT WS-DOCUMENT
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Clientes..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT.
+
+           IF SQLCODE NOT EQUAL 0
+               DISPLAY "Client not Found"
+               PERFORM 0260-DETALLE-CLIENTE
+           END-IF
+
+           PERFORM 0261-PRNT-DETALLE-CLIENTE
+
+           PERFORM 0260-DETALLE-CLIENTE.
+
+       0260-END.
+
+       0261-PRNT-DETALLE-CLIENTE.
+
+           INITIALIZE WS-SALDO-PRNT
+           MOVE SALDO TO WS-SALDO-PRNT
+
+           DISPLAY "**********************************************"
+           DISPLAY "          DETALLE DE CUENTA                  "
+           DISPLAY "**********************************************"
+           DISPLAY " Cliente ID        : " FUNCTION TRIM(ID-CLIENTE)
+           DISPLAY " Documento         : " FUNCTION TRIM(DOCUMENT)
+           DISPLAY " Nombre            : " FUNCTION TRIM(NOMBRE)
+           DISPLAY " Apellidos         : " FUNCTION TRIM(APELLIDO)
+           DISPLAY " Dirección         : " FUNCTION TRIM(DIRECCION)
+           DISPLAY " Teléfono          : " FUNCTION TRIM(TELEFONO)
+           DISPLAY " Correo            : " FUNCTION TRIM(MAIL)
+           DISPLAY "----------------------------------------------"
+
+           IF TARJETA = 1
+               DISPLAY " Tarjeta: Si"
+           ELSE
+               DISPLAY " Tarjeta: No"
+           END-IF
+
+           IF CREDITO = 1
+               DISPLAY " Credito: Si"
+           ELSE
+               DISPLAY " Credito: No"
+           END-IF
+
+           IF HIPOTECA = 1
+               DISPLAY " Hipoteca: Si"
+           ELSE
+               DISPLAY " Hipoteca: No"
+           END-IF
+
+           IF ACTIVA = 1
+               DISPLAY " Cuenta activa"
+           ELSE
+               DISPLAY " Cuenta dada de baja "
+               DISPLAY "En: " FUNCTION TRIM(FECHA-CIERRE)
+           END-IF
+
+           DISPLAY "----------------------------------------------"
+           DISPLAY " Saldo disponible  : $" WS-SALDO-PRNT
+           DISPLAY "**********************************************".
+
+
+       0261-END.
+
+
+
+       0241-PRNT-MN-UPDATE.
            MOVE "Actualizar info." TO WS-TXT-TITLE(07:16)
            DISPLAY "+" WS-LINE "+"
            DISPLAY WS-TITLE
            DISPLAY "+" WS-LINE "+"
 
-
-           PERFORM 0242-PRNT-CLT
-
-
-           MOVE "1. Actualizar Nombre" TO WS-TXTMN1
-           MOVE "2. Actualizar Apellido" TO WS-TXTMN2
-           MOVE "3. Actualizar Dirección" TO WS-TXTMN3
-           MOVE "4. Actualizar Telefono" TO WS-TXTMN4
-           MOVE "5. Actualizar Correo" TO WS-TXTMN5
-           MOVE "6. Volver" TO WS-TXTMN5
-
-
+           PERFORM 0242-PRNT-CLIENT
            DISPLAY WS-LEFT-WALL WS-SPACE WS-TXT-SUBTITLE WS-RGTH-WALL
            DISPLAY WS-LEFT-WALL WS-UD-MN1 WS-RGTH-WALL
            DISPLAY WS-LEFT-WALL WS-UD-MN2 WS-RGTH-WALL
@@ -442,11 +601,9 @@
            DISPLAY WS-LEFT-WALL WS-UD-MN5 WS-RGTH-WALL
            DISPLAY WS-LEFT-WALL WS-UD-MN6 WS-RGTH-WALL
            DISPLAY "+" WS-LINE "+".
-
        0241-END.
 
-       0242-PRNT-CLT.
-
+       0242-PRNT-CLIENT.
            DISPLAY '--------------------------------'
            DISPLAY "Informacion del cliente"
            DISPLAY '--------------------------------'
@@ -457,13 +614,35 @@
            DISPLAY '> TELEFONO   | ' TELEFONO
            DISPLAY '> MAIL       | ' MAIL
            DISPLAY '--------------------------------'.
-
        0242-END.
 
+       0243-ERROR-UPDATE.
+           DISPLAY "x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x"
+           DISPLAY "La cuenta no se puede cerrar debido a:"
+
+           IF TARJETA = 1
+               DISPLAY "La cuenta posee tarjetas activas."
+           END-IF.
+
+           IF CREDITO = 1
+               DISPLAY "La cuenta posee creditos pendientes."
+           END-IF.
+
+           IF HIPOTECA = 1
+               DISPLAY "La cuenta posee una hipoteca pendiente."
+           END-IF.
+
+           IF ACTIVA = 0
+               DISPLAY "La cuenta ya no esta ACTIVA."
+           END-IF.
+
+           IF SALDO NOT = 0.00
+               DISPLAY "La cuenta posee saldo."
+           END-IF.
+           DISPLAY "x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x".
+       0243-END.
+
        0291-COMMIT.
-      *-----------------------------------------------------------------*
-      * COMMIT CHANGES
-      *-----------------------------------------------------------------*
            EXEC SQL
                COMMIT
            END-EXEC

@@ -21,6 +21,24 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
+<<<<<<< HEAD
+           05 SQLVERSN PIC 99 VALUE 02.
+           05 SQLCODE  PIC S9(9) COMP-5.
+           05 SQLERRM.
+               49 SQLERRML PIC S9(4) COMP-5.
+               49 SQLERRMC PIC X(486).
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
+       01 SQLV.
+           05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 14.
+           05 SQL-COUNT  PIC S9(9) COMP-5.
+           05 SQL-ADDR   POINTER OCCURS 14 TIMES.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 14 TIMES.
+           05 SQL-TYPE   PIC X OCCURS 14 TIMES.
+           05 SQL-PREC   PIC X OCCURS 14 TIMES.
+      **********************************************************************
+       01 SQL-STMT-0.
+           05 SQL-IPTR   POINTER.
+=======
            05 SQLVERSN PIC 99 VALUE 03.
            05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
            05 SQLERRM.
@@ -39,6 +57,7 @@
       **********************************************************************
        01 SQL-STMT-0.
            05 SQL-IPTR   POINTER VALUE NULL.
+>>>>>>> origin/main
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -46,7 +65,11 @@
            05 SQL-STMT   PIC X(17) VALUE 'SELECT DATABASE()'.
       **********************************************************************
        01 SQL-STMT-1.
+<<<<<<< HEAD
+           05 SQL-IPTR   POINTER.
+=======
            05 SQL-IPTR   POINTER VALUE NULL.
+>>>>>>> origin/main
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -55,7 +78,11 @@
       -    'M clientes'.
       **********************************************************************
        01 SQL-STMT-2.
+<<<<<<< HEAD
+           05 SQL-IPTR   POINTER.
+=======
            05 SQL-IPTR   POINTER VALUE NULL.
+>>>>>>> origin/main
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 13.
@@ -64,6 +91,21 @@
       -    '?,?,CURRENT_DATE,?,?,?,?,?,?,?,?,?,null,?)'.
       **********************************************************************
        01 SQL-STMT-3.
+<<<<<<< HEAD
+           05 SQL-IPTR   POINTER.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 257.
+           05 SQL-STMT   PIC X(257) VALUE 'SELECT C.ID_CLIENTE,C.DOC_CLI
+      -    'ENTE,C.NOMBRE_CLIENTE,C.APELLIDOS_CLIENTE,C.DIRECCION_CLIENT
+      -    'E,C.TELEF_CLIENTE,C.EMAIL_CLIENTE,C.TARJETA,C.CREDITO,C.HIPO
+      -    'TECA,C.CTA_ACTIVA,C.SALDO_CLIENTE,C.FECHA_CIERRE FROM banco.
+      -    'clientes C WHERE C.DOC_CLIENTE = TRIM(?) LIMIT 1'.
+      **********************************************************************
+       01 SQL-STMT-4.
+           05 SQL-IPTR   POINTER.
+=======
            05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
@@ -76,6 +118,7 @@
       **********************************************************************
        01 SQL-STMT-4.
            05 SQL-IPTR   POINTER VALUE NULL.
+>>>>>>> origin/main
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -84,7 +127,11 @@
       -    'ENTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-5.
+<<<<<<< HEAD
+           05 SQL-IPTR   POINTER.
+=======
            05 SQL-IPTR   POINTER VALUE NULL.
+>>>>>>> origin/main
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -93,7 +140,11 @@
       -    'CLIENTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-6.
+<<<<<<< HEAD
+           05 SQL-IPTR   POINTER.
+=======
            05 SQL-IPTR   POINTER VALUE NULL.
+>>>>>>> origin/main
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -101,6 +152,36 @@
            05 SQL-STMT   PIC X(67) VALUE 'UPDATE CLIENTES SET DIRECCION_
       -    'CLIENTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
+<<<<<<< HEAD
+       01 SQL-STMT-7.
+           05 SQL-IPTR   POINTER.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 63.
+           05 SQL-STMT   PIC X(63) VALUE 'UPDATE CLIENTES SET TELEF_CLIE
+      -    'NTE = TRIM(?) WHERE ID_CLIENTE =?'.
+      **********************************************************************
+       01 SQL-STMT-8.
+           05 SQL-IPTR   POINTER.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 63.
+           05 SQL-STMT   PIC X(63) VALUE 'UPDATE CLIENTES SET EMAIL_CLIE
+      -    'NTE = TRIM(?) WHERE ID_CLIENTE =?'.
+      **********************************************************************
+       01 SQL-STMT-9.
+           05 SQL-IPTR   POINTER.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 63.
+           05 SQL-STMT   PIC X(63) VALUE 'UPDATE CLIENTES SET EMAIL_CLIE
+      -    'NTE = TRIM(?) WHERE ID_CLIENTE =?'.
+      **********************************************************************
+=======
+>>>>>>> origin/main
       *******          PRECOMPILER-GENERATED VARIABLES               *******
        01 SQLV-GEN-VARS.
            05 SQL-VAR-0001  PIC S9(3) COMP-3.
@@ -112,12 +193,17 @@
            05 SQL-VAR-0008  PIC S9(13)V9(2) COMP-3.
       *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
       **********************************************************************
+<<<<<<< HEAD
+
+       COPY "BD001".
+=======
        01   DB-CONN.
            05  DB-USER                 PIC X(20) VALUE 'mysql'.
            05  DB-PASSWORD             PIC X(20) VALUE 'root'.
            05  DB-NAME                 PIC X(20) VALUE 'banco'.
            05  DB-HOST                 PIC X(20) VALUE 'localhost'.
            05  DB-PORT                 PIC 9(5)  VALUE 3306.
+>>>>>>> origin/main
 
       *EXEC SQL
       *    BEGIN DECLARE SECTION
@@ -147,8 +233,11 @@
                10  FECHA-CIERRE              PIC X(10).
                10  SALDO                     PIC 9(12)V99.
 
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> origin/main
       *    EXEC SQL
       *        END DECLARE SECTION
       *    END-EXEC
@@ -196,6 +285,9 @@
                05  WS-SALDO                     PIC 9(12)V99.
 
        01  WS-OPTION                            PIC 9 VALUE 0.
+<<<<<<< HEAD
+       01  WS-SALDO-PRNT                        PIC Z9(12),99.
+=======
 
        *>01  WS-FECHA-RAW   PIC X(6).
 
@@ -205,6 +297,7 @@
            *> 02  WS-MM      PIC 99.
            *> 02  WS-SEP2    PIC X VALUE "-".
            *> 02  WS-DD      PIC 99.
+>>>>>>> origin/main
 
        LINKAGE SECTION.
        01  LK-OPTION PIC 9(1).
@@ -249,7 +342,10 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-0
                                    SQLCA
+<<<<<<< HEAD
+=======
                SET SQL-HCONN OF SQLCA TO NULL
+>>>>>>> origin/main
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-0
                                SQLCA
@@ -265,11 +361,16 @@
        0200-PROCEDIMIENTO.
 
        0210-CLIENTES.
+<<<<<<< HEAD
+           INITIALIZE WS-OPTION WS-TXT-TITLE.
+           MOVE "Menu clientes   " TO WS-TXT-TITLE(07:16).
+=======
        *>    MENU TITLE
            GO TO 0240-UPDT-CLIENT
 
            INITIALIZE WS-OPTION.
            MOVE "Menu clientes" TO WS-TXT-TITLE(07:13).
+>>>>>>> origin/main
            MOVE ":Modulos disponibles:" TO WS-TXT-SUBTITLE.
 
            PERFORM 0221-PRINT-MENU.
@@ -283,6 +384,18 @@
                    PERFORM 0210-CLIENTES
                WHEN 2
            *>   Actualizar info Cliente
+<<<<<<< HEAD
+           *>        DISPLAY "Actualizar clientes"
+                   PERFORM 0240-UPDATE-CLIENT
+                   PERFORM 0210-CLIENTES
+               WHEN 3
+               *> Eliminar clientes
+                   PERFORM 0250-BAJA-CLIENTE
+                   PERFORM 0210-CLIENTES
+               WHEN 4
+                   PERFORM 0260-DETALLE-CLIENTE
+                   PERFORM 0210-CLIENTES
+=======
                    DISPLAY "Actualizar clientes"
                    PERFORM 0240-UPDT-CLIENT
                WHEN 3
@@ -292,6 +405,7 @@
 
                    PERFORM 0210-CLIENTES
 
+>>>>>>> origin/main
                WHEN 5
                    PERFORM 0300-FIN
 
@@ -299,7 +413,11 @@
                    DISPLAY "(" WS-OPTION ") - " "Opcion invalida."
                    PERFORM 0210-CLIENTES
 
+<<<<<<< HEAD
+           DISPLAY "DEBUG: (-1) Salida incorrecta".
+=======
            DISPLAY "Salida incorrecta".
+>>>>>>> origin/main
 
        0221-PRINT-MENU.
            DISPLAY "+" WS-LINE "+".
@@ -314,7 +432,11 @@
            DISPLAY "+" WS-LINE "+".
        0221-END.
 
+<<<<<<< HEAD
+       0222-PRINT-UPDATE-MENU.
+=======
        0222-PRINT-UD-MENU.
+>>>>>>> origin/main
            DISPLAY "+" WS-LINE "+".
            DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
@@ -357,7 +479,11 @@
            DISPLAY "Inserte el correo:"
            ACCEPT WS-MAIL
 
+<<<<<<< HEAD
+           *> WS-MAX-ID Indice para el siguiente registro
+=======
            *> Indice para el siguiente registro
+>>>>>>> origin/main
       *    EXEC SQL
       *        SELECT MAX(ID_CLIENTE) + 1
       *        INTO :WS-MAX-ID
@@ -373,7 +499,10 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-1
                                    SQLCA
+<<<<<<< HEAD
+=======
                SET SQL-HCONN OF SQLCA TO NULL
+>>>>>>> origin/main
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-1
                                SQLCA
@@ -484,7 +613,10 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-2
                                    SQLCA
+<<<<<<< HEAD
+=======
                SET SQL-HCONN OF SQLCA TO NULL
+>>>>>>> origin/main
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -505,7 +637,11 @@
        0231-END.
 
 
+<<<<<<< HEAD
+       0232-SEARCH-CLIENT.
+=======
        0232-SEARCH-CLIE.
+>>>>>>> origin/main
            MOVE WS-DOCUMENT TO DB-DOCUMENT
 
       *    EXEC SQL
@@ -515,7 +651,17 @@
       *            C.APELLIDOS_CLIENTE,
       *            C.DIRECCION_CLIENTE,
       *            C.TELEF_CLIENTE,
+<<<<<<< HEAD
+      *            C.EMAIL_CLIENTE,
+      *            C.TARJETA,
+      *            C.CREDITO,
+      *            C.HIPOTECA,
+      *            C.CTA_ACTIVA,
+      *            C.SALDO_CLIENTE,
+      *            C.FECHA_CIERRE
+=======
       *            C.EMAIL_CLIENTE
+>>>>>>> origin/main
 
       *    INTO    :ID-CLIENTE,
       *            :DOCUMENT,
@@ -523,7 +669,17 @@
       *            :APELLIDO,
       *            :DIRECCION,
       *            :TELEFONO,
+<<<<<<< HEAD
+      *            :MAIL,
+      *            :TARJETA,
+      *            :CREDITO,
+      *            :HIPOTECA,
+      *            :ACTIVA,
+      *            :SALDO,
+      *            :FECHA-CIERRE
+=======
       *            :MAIL
+>>>>>>> origin/main
 
       *    FROM banco.clientes C
       *    WHERE C.DOC_CLIENTE = TRIM(:DB-DOCUMENT)
@@ -560,6 +716,44 @@
                MOVE 'X' TO SQL-TYPE(7)
                MOVE 40 TO SQL-LEN(7)
                SET SQL-ADDR(8) TO ADDRESS OF
+<<<<<<< HEAD
+                 SQL-VAR-0004
+               MOVE '3' TO SQL-TYPE(8)
+               MOVE 1 TO SQL-LEN(8)
+               MOVE X'00' TO SQL-PREC(8)
+               SET SQL-ADDR(9) TO ADDRESS OF
+                 SQL-VAR-0005
+               MOVE '3' TO SQL-TYPE(9)
+               MOVE 1 TO SQL-LEN(9)
+               MOVE X'00' TO SQL-PREC(9)
+               SET SQL-ADDR(10) TO ADDRESS OF
+                 SQL-VAR-0006
+               MOVE '3' TO SQL-TYPE(10)
+               MOVE 1 TO SQL-LEN(10)
+               MOVE X'00' TO SQL-PREC(10)
+               SET SQL-ADDR(11) TO ADDRESS OF
+                 SQL-VAR-0007
+               MOVE '3' TO SQL-TYPE(11)
+               MOVE 1 TO SQL-LEN(11)
+               MOVE X'00' TO SQL-PREC(11)
+               SET SQL-ADDR(12) TO ADDRESS OF
+                 SQL-VAR-0008
+               MOVE '3' TO SQL-TYPE(12)
+               MOVE 8 TO SQL-LEN(12)
+               MOVE X'02' TO SQL-PREC(12)
+               SET SQL-ADDR(13) TO ADDRESS OF
+                 FECHA-CIERRE
+               MOVE 'X' TO SQL-TYPE(13)
+               MOVE 10 TO SQL-LEN(13)
+               SET SQL-ADDR(14) TO ADDRESS OF
+                 DB-DOCUMENT
+               MOVE 'X' TO SQL-TYPE(14)
+               MOVE 12 TO SQL-LEN(14)
+               MOVE 14 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-3
+                                   SQLCA
+=======
                  DB-DOCUMENT
                MOVE 'X' TO SQL-TYPE(8)
                MOVE 12 TO SQL-LEN(8)
@@ -568,10 +762,25 @@
                                    SQL-STMT-3
                                    SQLCA
                SET SQL-HCONN OF SQLCA TO NULL
+>>>>>>> origin/main
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-3
                                SQLCA
            MOVE SQL-VAR-0003 TO ID-CLIENTE
+<<<<<<< HEAD
+           MOVE SQL-VAR-0004 TO TARJETA
+           MOVE SQL-VAR-0005 TO CREDITO
+           MOVE SQL-VAR-0006 TO HIPOTECA
+           MOVE SQL-VAR-0007 TO ACTIVA
+           MOVE SQL-VAR-0008 TO SALDO
+                   .
+
+           PERFORM 0291-SQLSTATE-CHECK.
+       0232-END.
+
+       0233-UPDATE-DATA-CLIENT.
+           INITIALIZE WS-CLIENT
+=======
                    .
 
            PERFORM 0291-SQLSTATE-CHECK
@@ -584,6 +793,7 @@
        0232-END.
 
        0233-UTD-CLIENT.
+>>>>>>> origin/main
 
            EVALUATE WS-OPTION
                WHEN 1
@@ -611,7 +821,10 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-4
                                    SQLCA
+<<<<<<< HEAD
+=======
                SET SQL-HCONN OF SQLCA TO NULL
+>>>>>>> origin/main
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -651,7 +864,10 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-5
                                    SQLCA
+<<<<<<< HEAD
+=======
                SET SQL-HCONN OF SQLCA TO NULL
+>>>>>>> origin/main
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -691,7 +907,10 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-6
                                    SQLCA
+<<<<<<< HEAD
+=======
                SET SQL-HCONN OF SQLCA TO NULL
+>>>>>>> origin/main
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -706,6 +925,95 @@
                    DISPLAY "Se ha actualizado la direccion del cliente"
                    END-IF
 
+<<<<<<< HEAD
+                WHEN 4
+                   DISPLAY "Inserte nuevo no. de telefono: "
+                   ACCEPT WS-TELEFONO
+
+                   MOVE WS-TELEFONO TO TELEFONO
+
+      *            EXEC SQL
+      *            UPDATE CLIENTES
+      *            SET  TELEF_CLIENTE = TRIM(:TELEFONO)
+      *            WHERE ID_CLIENTE =: ID-CLIENTE
+      *            END-EXEC
+           IF SQL-PREP OF SQL-STMT-7 = 'N'
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 TELEFONO
+               MOVE 'X' TO SQL-TYPE(1)
+               MOVE 12 TO SQL-LEN(1)
+               SET SQL-ADDR(2) TO ADDRESS OF
+                 SQL-VAR-0003
+               MOVE '3' TO SQL-TYPE(2)
+               MOVE 2 TO SQL-LEN(2)
+               MOVE X'00' TO SQL-PREC(2)
+               MOVE 2 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-7
+                                   SQLCA
+           END-IF
+           MOVE ID-CLIENTE
+             TO SQL-VAR-0003
+           CALL 'OCSQLEXE' USING SQL-STMT-7
+                               SQLCA
+
+                   PERFORM 0291-SQLSTATE-CHECK
+
+                   PERFORM 0291-COMMIT
+
+                   IF SQLCODE = 0
+                   DISPLAY "Se ha actualizado el telefono del cliente"
+                   END-IF
+
+                WHEN 5
+                   DISPLAY "Inserte nuevo correo electronico: "
+                   ACCEPT WS-MAIL
+
+                   MOVE WS-MAIL TO MAIL
+
+      *            EXEC SQL
+      *            UPDATE CLIENTES
+      *            SET  EMAIL_CLIENTE = TRIM(:MAIL)
+      *            WHERE ID_CLIENTE =: ID-CLIENTE
+      *            END-EXEC
+           IF SQL-PREP OF SQL-STMT-8 = 'N'
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 MAIL
+               MOVE 'X' TO SQL-TYPE(1)
+               MOVE 40 TO SQL-LEN(1)
+               SET SQL-ADDR(2) TO ADDRESS OF
+                 SQL-VAR-0003
+               MOVE '3' TO SQL-TYPE(2)
+               MOVE 2 TO SQL-LEN(2)
+               MOVE X'00' TO SQL-PREC(2)
+               MOVE 2 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-8
+                                   SQLCA
+           END-IF
+           MOVE ID-CLIENTE
+             TO SQL-VAR-0003
+           CALL 'OCSQLEXE' USING SQL-STMT-8
+                               SQLCA
+
+                   PERFORM 0291-SQLSTATE-CHECK
+
+                   PERFORM 0291-COMMIT
+
+                   IF SQLCODE = 0
+                   DISPLAY "Se ha actualizado el correo del cliente"
+                   END-IF
+
+                WHEN 6
+                   DISPLAY "Regresando..."
+                   EXIT PARAGRAPH
+
+           END-EVALUATE.
+       0233-END.
+
+
+       0240-UPDATE-CLIENT.
+=======
            END-EVALUATE.
 
        0233-END.
@@ -713,12 +1021,188 @@
 
 
        0240-UPDT-CLIENT.
+>>>>>>> origin/main
            INITIALIZE CLIENT WS-OPTION.
 
            MOVE "Actualizar info." TO WS-TXT-TITLE(07:16).
            DISPLAY "+" WS-LINE "+".
            DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
+<<<<<<< HEAD
+           DISPLAY "Ingrese (-1) para salir"
+           DISPLAY "Ingrese el Docuemento del cliente:"
+           ACCEPT WS-DOCUMENT
+
+           MOVE FUNCTION TRIM(WS-DOCUMENT) TO WS-DOCUMENT
+
+           DISPLAY "Documento ingresado:" WS-DOCUMENT "$"
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Clientes..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT.
+
+           IF SQLCODE NOT EQUAL 0
+               DISPLAY "Client not Found"
+               PERFORM 0240-UPDATE-CLIENT
+           END-IF
+
+           PERFORM UNTIL WS-OPTION = 6
+               PERFORM 0241-PRNT-MN-UPDATE
+               DISPLAY "Dato a actualizar:"
+               ACCEPT WS-OPTION
+               PERFORM 0233-UPDATE-DATA-CLIENT
+           END-PERFORM.
+       0240-END.
+
+
+       0250-BAJA-CLIENTE.
+           MOVE "Dar de Baja a Cliente" TO WS-TXT-TITLE(03:21)
+           DISPLAY "+" WS-LINE "+"
+           DISPLAY WS-TITLE
+           DISPLAY "+" WS-LINE "+"
+
+           DISPLAY "(-1) Para salir"
+           DISPLAY "Ingrese el Documento del cliente a dar de baja:"
+           ACCEPT WS-DOCUMENT
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Clientes..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT.
+
+           IF SQLCODE NOT EQUAL 0
+               DISPLAY "Client not Found"
+               PERFORM 0250-BAJA-CLIENTE
+           END-IF
+
+           IF TARJETA = 0  AND CREDITO = 0 AND HIPOTECA = 0
+               AND ACTIVA = 1 AND SALDO = 0.00
+               PERFORM 0251-UPDATE-BAJA
+           ELSE
+               PERFORM 0243-ERROR-UPDATE
+               PERFORM 0250-BAJA-CLIENTE
+           END-IF.
+       0250-END.
+
+       0251-UPDATE-BAJA.
+      *    EXEC SQL
+      *        UPDATE CLIENTES
+      *        SET  EMAIL_CLIENTE = TRIM(:MAIL)
+      *        WHERE ID_CLIENTE =: ID-CLIENTE
+      *    END-EXEC
+           IF SQL-PREP OF SQL-STMT-9 = 'N'
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 MAIL
+               MOVE 'X' TO SQL-TYPE(1)
+               MOVE 40 TO SQL-LEN(1)
+               SET SQL-ADDR(2) TO ADDRESS OF
+                 SQL-VAR-0003
+               MOVE '3' TO SQL-TYPE(2)
+               MOVE 2 TO SQL-LEN(2)
+               MOVE X'00' TO SQL-PREC(2)
+               MOVE 2 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-9
+                                   SQLCA
+           END-IF
+           MOVE ID-CLIENTE
+             TO SQL-VAR-0003
+           CALL 'OCSQLEXE' USING SQL-STMT-9
+                               SQLCA
+
+           PERFORM 0291-COMMIT
+
+           IF SQLCODE = 0
+               DISPLAY "Se ha dado de baja al cliente"
+           END-IF.
+       0251-END.
+
+       0260-DETALLE-CLIENTE.
+           MOVE "Detalle de cliente" TO WS-TXT-TITLE(04:18)
+           DISPLAY "+" WS-LINE "+"
+           DISPLAY WS-TITLE
+           DISPLAY "+" WS-LINE "+"
+
+           DISPLAY "(-1) Para salir"
+           DISPLAY "Ingrese el Documento del cliente a consultar:"
+           ACCEPT WS-DOCUMENT
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Clientes..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT.
+
+           IF SQLCODE NOT EQUAL 0
+               DISPLAY "Client not Found"
+               PERFORM 0260-DETALLE-CLIENTE
+           END-IF
+
+           PERFORM 0261-PRNT-DETALLE-CLIENTE
+
+           PERFORM 0260-DETALLE-CLIENTE.
+
+       0260-END.
+
+       0261-PRNT-DETALLE-CLIENTE.
+
+           INITIALIZE WS-SALDO-PRNT
+           MOVE SALDO TO WS-SALDO-PRNT
+
+           DISPLAY "**********************************************"
+           DISPLAY "          DETALLE DE CUENTA                  "
+           DISPLAY "**********************************************"
+           DISPLAY " Cliente ID        : " FUNCTION TRIM(ID-CLIENTE)
+           DISPLAY " Documento         : " FUNCTION TRIM(DOCUMENT)
+           DISPLAY " Nombre            : " FUNCTION TRIM(NOMBRE)
+           DISPLAY " Apellidos         : " FUNCTION TRIM(APELLIDO)
+           DISPLAY " Dirección         : " FUNCTION TRIM(DIRECCION)
+           DISPLAY " Teléfono          : " FUNCTION TRIM(TELEFONO)
+           DISPLAY " Correo            : " FUNCTION TRIM(MAIL)
+           DISPLAY "----------------------------------------------"
+
+           IF TARJETA = 1
+               DISPLAY " Tarjeta: Si"
+           ELSE
+               DISPLAY " Tarjeta: No"
+           END-IF
+
+           IF CREDITO = 1
+               DISPLAY " Credito: Si"
+           ELSE
+               DISPLAY " Credito: No"
+           END-IF
+
+           IF HIPOTECA = 1
+               DISPLAY " Hipoteca: Si"
+           ELSE
+               DISPLAY " Hipoteca: No"
+           END-IF
+
+           IF ACTIVA = 1
+               DISPLAY " Cuenta activa"
+           ELSE
+               DISPLAY " Cuenta dada de baja "
+               DISPLAY "En: " FUNCTION TRIM(FECHA-CIERRE)
+           END-IF
+
+           DISPLAY "----------------------------------------------"
+           DISPLAY " Saldo disponible  : $" WS-SALDO-PRNT
+           DISPLAY "**********************************************".
+
+
+       0261-END.
+
+
+
+       0241-PRNT-MN-UPDATE.
+=======
            DISPLAY "Ingrese el Docuemento del cliente:"
            ACCEPT WS-DOCUMENT
 
@@ -736,11 +1220,15 @@
        0240-END.
 
        0241-PRNT-MN-UPDT.
+>>>>>>> origin/main
            MOVE "Actualizar info." TO WS-TXT-TITLE(07:16)
            DISPLAY "+" WS-LINE "+"
            DISPLAY WS-TITLE
            DISPLAY "+" WS-LINE "+"
 
+<<<<<<< HEAD
+           PERFORM 0242-PRNT-CLIENT
+=======
 
            PERFORM 0242-PRNT-CLT
 
@@ -753,6 +1241,7 @@
            MOVE "6. Volver" TO WS-TXTMN5
 
 
+>>>>>>> origin/main
            DISPLAY WS-LEFT-WALL WS-SPACE WS-TXT-SUBTITLE WS-RGTH-WALL
            DISPLAY WS-LEFT-WALL WS-UD-MN1 WS-RGTH-WALL
            DISPLAY WS-LEFT-WALL WS-UD-MN2 WS-RGTH-WALL
@@ -761,11 +1250,17 @@
            DISPLAY WS-LEFT-WALL WS-UD-MN5 WS-RGTH-WALL
            DISPLAY WS-LEFT-WALL WS-UD-MN6 WS-RGTH-WALL
            DISPLAY "+" WS-LINE "+".
+<<<<<<< HEAD
+       0241-END.
+
+       0242-PRNT-CLIENT.
+=======
 
        0241-END.
 
        0242-PRNT-CLT.
 
+>>>>>>> origin/main
            DISPLAY '--------------------------------'
            DISPLAY "Informacion del cliente"
            DISPLAY '--------------------------------'
@@ -776,6 +1271,37 @@
            DISPLAY '> TELEFONO   | ' TELEFONO
            DISPLAY '> MAIL       | ' MAIL
            DISPLAY '--------------------------------'.
+<<<<<<< HEAD
+       0242-END.
+
+       0243-ERROR-UPDATE.
+           DISPLAY "x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x"
+           DISPLAY "La cuenta no se puede cerrar debido a:"
+
+           IF TARJETA = 1
+               DISPLAY "La cuenta posee tarjetas activas."
+           END-IF.
+
+           IF CREDITO = 1
+               DISPLAY "La cuenta posee creditos pendientes."
+           END-IF.
+
+           IF HIPOTECA = 1
+               DISPLAY "La cuenta posee una hipoteca pendiente."
+           END-IF.
+
+           IF ACTIVA = 0
+               DISPLAY "La cuenta ya no esta ACTIVA."
+           END-IF.
+
+           IF SALDO NOT = 0.00
+               DISPLAY "La cuenta posee saldo."
+           END-IF.
+           DISPLAY "x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x".
+       0243-END.
+
+       0291-COMMIT.
+=======
 
        0242-END.
 
@@ -783,6 +1309,7 @@
       *-----------------------------------------------------------------
       * COMMIT CHANGES
       *-----------------------------------------------------------------
+>>>>>>> origin/main
       *    EXEC SQL
       *        COMMIT
       *    END-EXEC
@@ -823,7 +1350,11 @@
 
        END PROGRAM MODCLI001.
       **********************************************************************
+<<<<<<< HEAD
+      *  : ESQL for GnuCOBOL/OpenCobol Version 2 (2021.05.29) Build May 29 2021
+=======
       *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
+>>>>>>> origin/main
 
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  ACTIVA                   IN USE THROUGH TEMP VAR SQL-VAR-0007 DECIMAL(1,0)
@@ -856,7 +1387,11 @@
       *  DIRECCION                IN USE CHAR(45)
       *  DOCUMENT                 IN USE CHAR(12)
       *  FECHA-ALTA           NOT IN USE
+<<<<<<< HEAD
+      *  FECHA-CIERRE             IN USE CHAR(10)
+=======
       *  FECHA-CIERRE         NOT IN USE
+>>>>>>> origin/main
       *  HIPOTECA                 IN USE THROUGH TEMP VAR SQL-VAR-0006 DECIMAL(1,0)
       *  ID-CLIENTE               IN USE THROUGH TEMP VAR SQL-VAR-0003 DECIMAL(3,0)
       *  MAIL                     IN USE CHAR(40)
