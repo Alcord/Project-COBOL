@@ -1,0 +1,566 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TARJCRE001.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT RPT-FILE-DETAIL ASSIGN TO "DEUDA_DETAIL.DAT"
+               ORGANIZATION IS LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  RPT-FILE-DETAIL.
+       01  RPT-DETALLE-CLI.
+           05  RPT-NOMBRE           PIC X(15).  *> Nombre del cliente
+           05  RPT-FILLER1          PIC X(02).
+           05  RPT-APELLIDOS        PIC X(15).  *> Apellidos del cliente
+           05  RPT-FILLER2          PIC X(02).
+           05  RPT-FECHA-ULT-MOV    PIC X(10).  *> Fecha del último movimiento (YYYY-MM-DD)
+           05  RPT-FILLER3          PIC X(02).
+           05  RPT-SALDO-ACTUAL    PIC ZZZZZ9.99-.  *> Saldo actual
+
+
+       WORKING-STORAGE SECTION.
+       01   DB-CONN.
+           05  DB-USER                 PIC X(20) VALUE 'root'.
+           05  DB-PASSWORD             PIC X(20) VALUE 'root'.
+           05  DB-NAME                 PIC X(20) VALUE 'banco'.
+           05  DB-HOST                 PIC X(20) VALUE 'localhost'.
+           05  DB-PORT                 PIC 9(5)  VALUE 3306.
+
+
+           EXEC SQL
+               BEGIN DECLARE SECTION
+           END-EXEC
+
+       01  DB-DATOS-CLI.
+           10  WS-NOMBRE           PIC X(15).
+           10  WS-APELLIDOS        PIC X(15).
+           10  WS-FECHA-ULT-MOV    PIC X(10).
+           10  WS-SALDO-ACTUAL     PIC 9(8)V99.
+
+       01  DB-DATOS-TARJETA.
+           05  WT-ID-CLIENTE                  PIC 9(05).
+           05  WTT-ID-CLIENTE                 PIC 9(05).
+           05  WT-DOC-CLI                     PIC X(12).
+           05  WT-NUMERO-TARJ                 PIC X(16).
+           05  WT-LIMITE-TARJ                 PIC S9(9)V99.
+           05  WT-EXISTE-TARJ                 PIC X(01).
+       01  DB-VARS.
+           05  BUFFER                  PIC X(1024).
+           05  ST-COUNT                PIC 9(6).
+           05  CTACTE.
+               10  WT-MONTO                   PIC S9(8)V99.
+               10  WS-EXISTE-CLIENTE          PIC X(01).
+               10  WS-NEWID-CTACTE            PIC 999.
+
+       01  DB-DATOS-CONSUMO.
+           05  WT-ID-MOVIMIENTO              PIC 9(10).
+           05  WT-NRO-TARJETA                PIC X(16).
+           05  WT-FECHA-MOVIMIENTO           PIC X(10).
+           05  WT-TIPO-MOVIMIENTO            PIC X(1).
+           05  WT-MONTO-TARJ                 PIC 9(12)V99.
+
+       01  DB-EXTRACTO-DETALLE.
+      *     05  WE-ID-CLIENTE                  PIC 9(10).
+           05  WE-DOC-CLIENTE                 PIC 9(10).
+           05  WE-FECHA-MOVIMIENTO            PIC X(10).
+           05  WE-TIPO-MOVIMIENTO             PIC X(15).
+           05  WE-IMPORTE                     PIC S9(9)V99.
+           05  WE-SALDO                       PIC S9(9)V99.
+
+       01  DB-DEUDA-DETALLE.
+           05  WE-ID-CLIENTE                  PIC 9(10).
+           05  WE-NRO-TARJETA                 PIC X(16).
+           05  WE-FECHA-VENCIMIENTO           PIC X(10).
+           05  WE-LIMITE-TARJETA              PIC 9(12)V99.
+           05  WE-ACUM-MES                    PIC 9(12)V99.
+           05  WE-LIQUIDACION-MES             PIC 9(12)V99.
+
+           EXEC SQL
+               END DECLARE SECTION
+           END-EXEC
+
+       01  WS-HEADER-P0  PIC X(80) VALUE
+           "*--------------------------------------------------------*".
+
+       01  WS-HEADER-P1  PIC X(80) VALUE
+           "NOMBRE        APELLIDOS       FECHA_ULT_MOV   SALDO_ACTUAL".
+
+       01  WS-HEADER-P2  PIC X(80) VALUE
+           "*--------------------------------------------------------*".
+
+       01  WS-HEADER             PIC X(59) VALUE
+           "ID_CLIENTE | NRO_TARJETA      | VENCIMIENTO | LIMITE | CON".
+       01  WS-HEADER-1           PIC X(59) VALUE
+           "SUMO | PAGO | DEUDA | DISPONIBLE".
+
+       01  WS-HEADER2             PIC X(80) VALUE
+           "************REPORTE DE MOVIMIENTOS DE TARJETAS**********".
+       01  WS-HEADER3             PIC X(80) VALUE
+           "********************************************************".
+       01  PRTEC                 PIC X(120).
+
+       01  WS-DATOS-TARJETA.
+           05  WS-ID-CLIENTE                  PIC 9(05).
+           05  WS-DOC-CLI                     PIC X(12).
+           05  WS-NUMERO-TARJ                 PIC X(16).
+           05  WS-LIMITE-TARJ                 PIC S9(9)V99.
+           05  WS-EXISTE-TARJ                 PIC X(01).
+
+       01  WS-DATOS-CONSUMO.
+           05  WS-ID-MOVIMIENTO              PIC 9(10).
+           05  WS-NRO-TARJETA                PIC X(16).
+           05  WS-FECHA-MOVIMIENTO           PIC X(10).
+           05  WS-TIPO-MOVIMIENTO            PIC X(1).
+           05  WS-MONTO-TARJ                 PIC 9(12)V99.
+
+       01  WS-TARJETA-DETAIL.
+           03 REG-DETAIL OCCURS 100 TIMES.
+              05  RPT-ID-CLIENTE                  PIC 9(10).
+              05  RPT-NRO-TARJETA                 PIC X(16).
+              05  RPT-FECHA-VENCIMIENTO           PIC X(10).
+              05  RPT-LIMITE-TARJETA              PIC 9(12)V99.
+              05  RPT-ACUM-MES                    PIC 9(12)V99.
+              05  RPT-LIQUIDACION-MES             PIC 9(12)V99.
+              05  RPT-DEUDA-TOTAL                 PIC 9(12)V99.
+              05  RPT-CREDITO-DISPONIBLE          PIC 9(12)V99.
+
+
+       01  RXT-FECHA-MOVIMIENTO           PIC X(10).
+       01  FIN-DATOS                      PIC X VALUE 'N'.
+       01  WS-WORK-AREAS.
+           05  FILE-CHECK-KEY          PIC X(2).
+           05  ERR-MSG                 PIC X(128).
+           05  ERR-CODE                PIC X(2).
+       01  OPCION                      PIC 9.
+       01  WS-SALDO                    PIC ZZZZZZ9.99.
+       01  WS-MONTO                    PIC S9(8)V99.
+
+       01  WX-TIPO-MOVIMIENTO          PIC 9.
+       01  WS-CONT                     PIC 999.
+       01  WS-CONTX                    PIC 999.
+       01  WS-INTENTOS                 PIC 99.
+
+       01  WS-ACUM-MES-FT              PIC ZZZZZZZZZZ9.99-.
+       01  WS-LIQUIDACION-MES-FT       PIC ZZZZZZZZZZ9.99-.
+       01  WS-DEUDA-TOTAL-FT           PIC ZZZZZZZZZZ9.99-.
+       01  WS-CREDITO-DISPONIBLE-FT    PIC ZZZZZZZZZZ9.99-.
+       01  WS-DEUDA-TOTAL              PIC 9(12)V99.
+       01  WS-CREDITO-DISPONIBLE       PIC 9(12)V99.
+
+
+
+       PROCEDURE DIVISION.
+       MAIN-PROGRAM.
+           PERFORM 0100-INICIO.
+           PERFORM 100-MENU.
+
+       100-MENU.
+           DISPLAY "===================================="
+           DISPLAY "    SISTEMA DE TARJ. CREDITO        "
+           DISPLAY "===================================="
+           DISPLAY "1 - Registrar nuevos contratos".
+           DISPLAY "2 - Registrar pagos y consumos"
+           DISPLAY "3 - Generar reportes de deuda mensual"
+           DISPLAY "4 - Salir"
+           DISPLAY "Seleccione una opción: "
+           ACCEPT OPCION
+
+           EVALUATE OPCION
+               WHEN 1
+                   PERFORM 100-REGISTRAR-NUEVO-CONTRATO
+               WHEN 2
+                   PERFORM 200-REGISTRAR-PAGOS-CONSUMO
+               WHEN 3
+                   PERFORM 300-GENERAR-REPORTE-DEUDA
+               WHEN 4
+                   STOP RUN
+               WHEN OTHER
+                   DISPLAY "Opción inválida, intente nuevamente."
+           END-EVALUATE.
+       300-GENERAR-REPORTE-DEUDA.
+           PERFORM 310-INICIO.
+           PERFORM 320-EXTRAE-DEUDA-CURSOR.
+           PERFORM 100-MENU.
+
+       200-VERIFICA-NRO-TARJETA.
+
+           IF WS-INTENTOS >= 3 THEN
+             DISPLAY "Núm de intentos superado. Ingrese otro documento."
+             PERFORM 200-REGISTRAR-PAGOS-CONSUMO
+           END-IF.
+
+           DISPLAY "Ingrese el Número de Tarjeta: ".
+           ACCEPT WS-NRO-TARJETA.
+           MOVE WS-NRO-TARJETA TO WT-NRO-TARJETA.
+
+           EXEC SQL
+            SELECT CASE
+                     WHEN EXISTS (SELECT 1
+                                    FROM BANCO.TARJETAS
+                                WHERE NRO_TARJETA =TRIM(:WT-NRO-TARJETA)
+                                         LIMIT 1)
+                     THEN 'S'
+                     ELSE 'N'
+                   END
+            INTO :WT-EXISTE-TARJ
+            END-EXEC.
+
+           MOVE WT-EXISTE-TARJ TO WS-EXISTE-TARJ.
+           IF WS-EXISTE-TARJ = 'S' THEN
+              DISPLAY "Tarjeta encontrada. Continuando..."
+              PERFORM 210-PEDIR-DATOS-MOVIMIENTO
+           ELSE
+            DISPLAY "Número de tarjeta incorrecto. Intente nuevamente."
+               ADD 1 TO WS-INTENTOS
+               PERFORM 200-VERIFICA-NRO-TARJETA
+           END-IF.
+
+       210-PEDIR-DATOS-MOVIMIENTO.
+           DISPLAY "Ingrese Tipo de Movimient(P = Pago, C = Consumo): ".
+           ACCEPT WS-TIPO-MOVIMIENTO
+
+           IF WS-TIPO-MOVIMIENTO NOT = 'P' AND
+                                     WS-TIPO-MOVIMIENTO NOT = 'C' THEN
+               DISPLAY "Tipo de movimien inválido. Debe ser 'P' o 'C'."
+               PERFORM 210-PEDIR-DATOS-MOVIMIENTO
+           END-IF
+
+           DISPLAY "Ingrese el Monto: "
+           ACCEPT WS-MONTO-TARJ
+
+           MOVE WS-DOC-CLI TO WT-DOC-CLI
+
+           *> Obtener el ID del Cliente
+           EXEC SQL
+             SELECT ID_CLIENTE
+              INTO :WT-ID-CLIENTE
+              FROM CLIENTES WHERE
+                   DOC_CLIENTE =TRIM(:WT-DOC-CLI) LIMIT 1
+           END-EXEC.
+
+           *> Obtener la fecha actual para el movimiento
+           EXEC SQL
+               SELECT CURDATE()
+               INTO :WT-FECHA-MOVIMIENTO
+           END-EXEC.
+           display "fecha: "WT-FECHA-MOVIMIENTO
+           *> Obtener el siguiente ID_MOVIMIENTO
+           EXEC SQL
+               SELECT COALESCE(MAX(ID_MOVIMIENTO), 0) + 1
+               INTO :WT-ID-MOVIMIENTO
+               FROM BANCO.MOVIMIENTOS_TARJETAS
+           END-EXEC.
+
+       220-INSERTA-PAGO-CONSUMO.
+
+           MOVE WS-TIPO-MOVIMIENTO  TO WT-TIPO-MOVIMIENTO
+           MOVE WS-MONTO-TARJ       TO WT-MONTO-TARJ
+           DISPLAY WT-ID-MOVIMIENTO
+           DISPLAY WT-ID-CLIENTE
+           DISPLAY WT-NRO-TARJETA
+           DISPLAY WT-FECHA-MOVIMIENTO
+           DISPLAY WT-TIPO-MOVIMIENTO
+           DISPLAY WT-MONTO-TARJ
+           *> Inserta el movimiento en la base de datos
+           EXEC SQL
+               INSERT INTO BANCO.MOVIMIENTOS_TARJETAS
+                      (ID_MOVIMIENTO, ID_CLIENTE,
+                       NRO_TARJETA, FECHA_MOV, TIPO_MOV, MONTO)
+               VALUES (:WT-ID-MOVIMIENTO, :WT-ID-CLIENTE,
+                       :WT-NRO-TARJETA, :WT-FECHA-MOVIMIENTO,
+                       :WT-TIPO-MOVIMIENTO, :WT-MONTO-TARJ)
+           END-EXEC
+           EXEC SQL
+             COMMIT
+           END-EXEC
+           IF SQLCODE = 0 THEN
+              DISPLAY "Movimiento registrado exitosamente...!"
+           ELSE
+              DISPLAY "Error en Inserta Movimiento....!"
+           END-IF.
+
+       200-REGISTRAR-PAGOS-CONSUMO.
+
+           MOVE ZEROES TO WS-INTENTOS
+           PERFORM 100-CONSULTA-CLIENTE
+           PERFORM 200-VERIFICA-NRO-TARJETA
+           PERFORM 220-INSERTA-PAGO-CONSUMO.
+           PERFORM 230-ACTUALIZA-PAGO-CONSUMO.
+           PERFORM 100-MENU.
+
+       230-ACTUALIZA-PAGO-CONSUMO.
+
+           IF WT-TIPO-MOVIMIENTO = 'C' THEN
+      *-- Actualizar el saldo del mes
+              EXEC SQL
+               UPDATE TARJETAS
+                  SET ACUM_MES = ACUM_MES + :WT-MONTO-TARJ
+                WHERE NRO_TARJETA =TRIM(:WT-NRO-TARJETA)
+              END-EXEC
+           ELSE
+      *-- Actualizar la liquidación
+               EXEC SQL
+               UPDATE TARJETAS
+                  SET LIQUIDACION_MES = LIQUIDACION_MES - :WT-MONTO-TARJ
+                WHERE NRO_TARJETA =TRIM(:WT-NRO-TARJETA);
+              END-EXEC
+           END-IF
+           EXEC SQL
+              COMMIT
+           END-EXEC.
+
+       100-CONSULTA-CLIENTE.
+
+           DISPLAY "Ingrese Documento Cliente: ".
+           ACCEPT WS-DOC-CLI
+
+           IF WS-DOC-CLI < 0 THEN
+              PERFORM 100-CONSULTA-CLIENTE
+           END-IF
+
+           PERFORM 100-EXISTE-CLIENTE
+
+           IF WS-EXISTE-CLIENTE = 'N' THEN
+              DISPLAY "Doc. No Existe: " WS-DOC-CLI
+              DISPLAY "Favor, Ingresar Nuevamente: "
+              PERFORM 100-CONSULTA-CLIENTE
+           END-IF.
+
+       110-VERIFICA-TARJETA.
+           MOVE WS-DOC-CLI TO WT-DOC-CLI.
+           EXEC SQL
+           SELECT CASE
+                    WHEN EXISTS (SELECT 1 FROM BANCO.TARJETAS
+                                 WHERE ID_CLIENTE =
+                                       (SELECT ID_CLIENTE
+                                        FROM BANCO.CLIENTES
+                              WHERE DOC_CLIENTE = TRIM(:WT-DOC-CLI)
+                                        LIMIT 1))
+                    THEN 'S'
+                    ELSE 'N'
+                  END
+           INTO :WT-EXISTE-TARJ
+           END-EXEC.
+           MOVE WT-EXISTE-TARJ TO WS-EXISTE-TARJ.
+       120-OBTENER-NRO-TARJETA.
+
+      *     CALL "GENTARJ001" USING WS-NUMERO-TARJ.
+
+           EXEC SQL
+           SELECT GenerarNumeroTarjeta()
+             INTO :WT-NUMERO-TARJ
+           FROM DUAL
+           END-EXEC.
+
+       130-INSERTA-TARJETA.
+
+           MOVE WS-DOC-CLI TO WT-DOC-CLI
+           EXEC SQL
+              SELECT ID_CLIENTE
+                INTO :WT-ID-CLIENTE
+                FROM BANCO.CLIENTES
+               WHERE DOC_CLIENTE =TRIM(:WT-DOC-CLI)
+             LIMIT 1
+           END-EXEC.
+
+            MOVE WT-ID-CLIENTE  TO WTT-ID-CLIENTE.
+            MOVE WS-LIMITE-TARJ TO WT-LIMITE-TARJ.
+
+           EXEC SQL
+             INSERT INTO BANCO.TARJETAS
+                VALUES(TRIM(:WTT-ID-CLIENTE),
+                       TRIM(:WT-NUMERO-TARJ),
+                       (SELECT CURDATE() + INTERVAL 10 YEAR FROM DUAL),
+                       :WT-LIMITE-TARJ,
+                       0,
+                       :WT-LIMITE-TARJ)
+           END-EXEC
+           EXEC SQL
+               COMMIT
+           END-EXEC.
+            IF SQLCODE = 0 THEN
+                 DISPLAY "Tarjeta creada.! NRO_TARJ:"WT-NUMERO-TARJ
+            ELSE
+                DISPLAY "Error en creacion de tarjeta....!"
+            END-IF.
+
+       140-VALIDAR-LIMITE-TARJ.
+
+           PERFORM UNTIL WS-LIMITE-TARJ > 5000
+              DISPLAY "Ingrese el Limite (Debe ser mayor a 1000): "
+              ACCEPT WS-LIMITE-TARJ
+           END-PERFORM
+           DISPLAY "Límite de tarjeta aceptado: " WS-LIMITE-TARJ.
+
+       100-REGISTRAR-NUEVO-CONTRATO.
+
+           PERFORM 100-CONSULTA-CLIENTE
+           PERFORM 110-VERIFICA-TARJETA
+
+           IF WS-EXISTE-TARJ = 'N' THEN
+              PERFORM 140-VALIDAR-LIMITE-TARJ
+              PERFORM 120-OBTENER-NRO-TARJETA
+              PERFORM 130-INSERTA-TARJETA
+           ELSE
+               DISPLAY "Tarjeta Credito ya Existe...!"
+           END-IF.
+           PERFORM 100-MENU.
+
+       320-EXTRAE-DEUDA-CURSOR.
+           EXEC SQL
+               DECLARE CURSOR_DEUDA CURSOR FOR
+               SELECT ID_CLIENTE, NRO_TARJETA,
+                      FECHA_VENCIMIENTO,
+                      LIMITE_TARJETA,
+                      ACUM_MES,
+                      LIQUIDACION_MES
+                FROM TARJETAS
+           END-EXEC.
+           EXEC SQL
+               OPEN CURSOR_DEUDA
+           END-EXEC.
+           DISPLAY WS-HEADER.
+           PERFORM UNTIL SQLCODE = 100
+               EXEC SQL
+                 FETCH CURSOR_DEUDA
+                 INTO
+                   :WE-ID-CLIENTE,
+                   :WE-NRO-TARJETA,
+                   :WE-FECHA-VENCIMIENTO,
+                   :WE-LIMITE-TARJETA,
+                   :WE-ACUM-MES,
+                   :WE-LIQUIDACION-MES
+               END-EXEC
+
+            IF SQLCODE NOT = 100 THEN
+               *> Formatear línea del reporte
+
+               ADD 1 TO WS-CONT
+              COMPUTE WS-DEUDA-TOTAL = WE-ACUM-MES - WE-LIQUIDACION-MES
+              COMPUTE WS-CREDITO-DISPONIBLE =
+                                      WE-LIMITE-TARJETA - WS-DEUDA-TOTAL
+
+               MOVE WE-ID-CLIENTE        TO RPT-ID-CLIENTE(WS-CONT)
+               MOVE WE-NRO-TARJETA       TO RPT-NRO-TARJETA(WS-CONT)
+               MOVE WE-FECHA-VENCIMIENTO
+                                       TO RPT-FECHA-VENCIMIENTO(WS-CONT)
+               MOVE WE-LIMITE-TARJETA    TO RPT-LIMITE-TARJETA(WS-CONT)
+               MOVE WE-ACUM-MES          TO RPT-ACUM-MES(WS-CONT)
+               MOVE WE-LIQUIDACION-MES   TO RPT-LIQUIDACION-MES(WS-CONT)
+               MOVE WS-DEUDA-TOTAL       TO RPT-DEUDA-TOTAL(WS-CONT)
+               MOVE WS-CREDITO-DISPONIBLE
+                                      TO RPT-CREDITO-DISPONIBLE(WS-CONT)
+           ELSE
+               DISPLAY ' NO TIENE MAS FILAS LA TABLA DE DB'
+           END-IF
+           END-PERFORM.
+           EXEC SQL CLOSE CURSOR_DEUDA END-EXEC
+           DISPLAY"                                                  "
+           DISPLAY"                                                  "
+           DISPLAY WS-HEADER2
+           STRING WS-HEADER WS-HEADER-1 INTO PRTEC
+           DISPLAY PRTEC
+           WRITE RPT-DETALLE-CLI FROM WS-HEADER2
+           WRITE RPT-DETALLE-CLI FROM PRTEC
+      *     MOVE SPACES TO PRTEC
+           PERFORM VARYING WS-CONTX FROM 1 BY 1 UNTIL WS-CONTX > WS-CONT
+           MOVE RPT-ACUM-MES(WS-CONTX) TO WS-ACUM-MES-FT
+           MOVE RPT-LIQUIDACION-MES(WS-CONTX)
+                                       TO WS-LIQUIDACION-MES-FT
+           MOVE RPT-DEUDA-TOTAL(WS-CONTX)
+                                       TO WS-DEUDA-TOTAL-FT
+           MOVE RPT-CREDITO-DISPONIBLE(WS-CONTX)
+                                       TO WS-CREDITO-DISPONIBLE-FT
+
+            STRING RPT-ID-CLIENTE(WS-CONTX)        " "
+                   RPT-NRO-TARJETA(WS-CONTX)    " "
+                   RPT-FECHA-VENCIMIENTO(WS-CONTX) " "
+                   RPT-LIMITE-TARJETA(WS-CONTX)    " "
+                   WS-ACUM-MES-FT                  " "
+                   WS-LIQUIDACION-MES-FT           " "
+                   WS-DEUDA-TOTAL-FT               " "
+                   WS-CREDITO-DISPONIBLE-FT
+                  INTO PRTEC
+              DISPLAY PRTEC
+           WRITE RPT-DETALLE-CLI FROM PRTEC
+           END-PERFORM
+              WRITE RPT-DETALLE-CLI FROM WS-HEADER3
+              DISPLAY WS-HEADER3
+           CLOSE RPT-FILE-DETAIL.
+
+       310-INICIO.
+           OPEN OUTPUT RPT-FILE-DETAIL
+           INITIALIZE WS-DOC-CLI.
+
+       100-INSERTA-MOVIMIENTO.
+           MOVE WS-MONTO TO WT-MONTO.
+           MOVE WS-DOC-CLI TO WT-DOC-CLI.
+           EXEC SQL
+               SELECT InsertarMovimiento(:WT-DOC-CLI, :WT-MONTO)
+                 INTO :WS-NEWID-CTACTE
+                 FROM DUAL;
+           END-EXEC
+           EXEC SQL
+               COMMIT
+           END-EXEC.
+
+       100-EXISTE-CLIENTE.
+           MOVE WS-DOC-CLI TO WT-DOC-CLI.
+           EXEC SQL
+           SELECT
+            IFNULL((SELECT 'S' FROM CLIENTES WHERE
+                          DOC_CLIENTE =TRIM(:WT-DOC-CLI) LIMIT 1), 'N')
+              INTO :WS-EXISTE-CLIENTE
+              FROM DUAL
+           END-EXEC.
+
+       0100-INICIO.
+      *-----------------------------------------------------------------*
+      * CONNECT TO THE DATABASE
+      * also possible with DSN: 'youruser/yourpasswd@yourODBC_DSN'
+      *-----------------------------------------------------------------*
+           STRING  'DRIVER={MySQL ODBC 8.0 ANSI Driver};'
+                   'SERVER=',DB-HOST,';'
+                   'PORT=',DB-PORT,';'
+                   'DATABASE=',DB-NAME,';'
+                   'USER=',DB-USER,';'
+                   'PASSWORD=',DB-PASSWORD,';'
+      * example for DB specific ODBC parameter:
+      * no compressed MySQL connection (would be the DEFAULT anyway)
+                   'COMRESSED_PROTO=0;'
+                   INTO BUFFER.
+           EXEC SQL
+               CONNECT TO :BUFFER
+           END-EXEC
+
+
+           EXEC SQL
+              SELECT DATABASE() INTO :BUFFER
+           END-EXEC
+
+           DISPLAY 'BASE DE DATOS ACTUAL: ' BUFFER
+           PERFORM SQLSTATE-CHECK.
+      *-----------------------------------------------------------------*
+      *-----------------------------------------------------------------*
+      * REVISA SQLSTATE E IMPRIME ERRORES SI EXISTEN
+      *-----------------------------------------------------------------*
+       SQLSTATE-CHECK.
+           IF SQLCODE < 0
+               DISPLAY 'SQLSTATE='  SQLSTATE,
+                       ', SQLCODE=' SQLCODE
+               IF SQLERRML > 0
+                   DISPLAY 'SQL Error message:' SQLERRMC(1:SQLERRML)
+               END-IF
+               MOVE SQLCODE TO RETURN-CODE
+      *         PERFORM 0400-MENU
+      *         STOP RUN
+           ELSE
+               IF SQLCODE > 0 AND NOT = 100
+                   DISPLAY 'SQLSTATE='  SQLSTATE,
+                           ', SQLCODE=' SQLCODE
+                   IF SQLERRML > 0
+                       DISPLAY 'SQL Warning message:'
+                               SQLERRMC(1:SQLERRML)
+                   END-IF
+               END-IF.

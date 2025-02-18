@@ -46,13 +46,14 @@
            STOP RUN.
 
            0100-INICIO.
-           DISPLAY "INICIO".
+           *>DISPLAY "INICIO".
       *    MENU TITLE
            MOVE "MAIN MENU" TO WS-TXT-TITLE(11:9).
            MOVE ":Modulos disponibles:" TO WS-TXT-SUBTITLE.
            0100-END.
 
            0200-PROCEDIMIENTO.
+           INITIALIZE WS-OPTION.
            PERFORM 0220-PRINT-MENU.
            DISPLAY "Ingrese una opcion: ".
            ACCEPT WS-OPTION.
@@ -60,12 +61,15 @@
            EVALUATE WS-OPTION
                WHEN 1
                    DISPLAY "Modulo ABM Clientes..."
+                   CALL 'MODCLI001' USING WS-OPTION
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 2
                    DISPLAY "Modulo Cuentas Corrientes..."
+                   CALl "TARJCRE001"
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 3
                    DISPLAY "Modulo Tarjetas de Credito..."
+                   CALL "TARJCRE001"
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 4
                    DISPLAY "Modulo Hipotecas..."
