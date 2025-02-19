@@ -10,14 +10,14 @@
        FILE SECTION.
        FD  RPT-FILE-DETAIL.
        01  RPT-DETALLE-CLI.
-           05  RPT-NOMBRE           PIC X(15).  *> Nombre del cliente
-           05  RPT-FILLER1          PIC X(02).
-           05  RPT-APELLIDOS        PIC X(15).  *> Apellidos del cliente
-           05  RPT-FILLER2          PIC X(02).
-           05  RPT-FECHA-ULT-MOV    PIC X(10).  *> Fecha del último movi
-           05  RPT-FILLER3          PIC X(02).
-           05  RPT-SALDO-ACTUAL    PIC ZZZZZ9.99-.  *> Saldo actual
-
+           05  RP-ID-CLIENTE                  PIC 9(10).
+           05  RP-NRO-TARJETA                 PIC X(16).
+           05  RP-FECHA-VENCIMIENTO           PIC X(10).
+           05  RP-LIMITE-TARJETA              PIC ZZZZZ9.99-.
+           05  RP-ACUM-MES                    PIC ZZZZZ9.99-.
+           05  RP-LIQUIDACION-MES             PIC ZZZZZ9.99-.
+           05  RP-DEUDA-TOTAL                 PIC ZZZZZ9.99-.
+           05  RP-CREDITO-DISPONIBLE          PIC ZZZZZ9.99-.
 
        WORKING-STORAGE SECTION.
       **********************************************************************
@@ -204,13 +204,8 @@
            05 SQL-VAR-0016  PIC S9(13)V9(2) COMP-3.
       *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
       **********************************************************************
-       01   DB-CONN.
-           05  DB-USER                 PIC X(20) VALUE 'root'.
-           05  DB-PASSWORD             PIC X(20) VALUE 'root'.
-           05  DB-NAME                 PIC X(20) VALUE 'banco'.
-           05  DB-HOST                 PIC X(20) VALUE 'localhost'.
-           05  DB-PORT                 PIC 9(5)  VALUE 3306.
 
+           COPY "BD001".
 
       *    EXEC SQL
       *        BEGIN DECLARE SECTION
@@ -273,16 +268,16 @@
        01  WS-HEADER-P2  PIC X(80) VALUE
            "*--------------------------------------------------------*".
 
-       01  WS-HEADER             PIC X(59) VALUE
-           "ID_CLIENTE | NRO_TARJETA      | VENCIMIENTO | LIMITE | CON".
+       01  WS-HEADER             PIC X(58) VALUE
+           "ID_CLIENTE| NRO_TARJETA    | VENCIMIENTO | LIMITE |  CONSU".
        01  WS-HEADER-1           PIC X(59) VALUE
-           "SUMO | PAGO | DEUDA | DISPONIBLE".
+           "MO  | PAGO  |    DEUDA  | DISPONIBLE".
 
        01  WS-HEADER2             PIC X(80) VALUE
            "************REPORTE DE MOVIMIENTOS DE TARJETAS**********".
        01  WS-HEADER3             PIC X(80) VALUE
            "********************************************************".
-       01  PRTEC                 PIC X(120).
+       01  PRTEC                 PIC X(150).
 
        01  WS-DATOS-TARJETA.
            05  WS-ID-CLIENTE                  PIC 9(05).
@@ -325,16 +320,19 @@
        01  WS-CONTX                    PIC 999.
        01  WS-INTENTOS                 PIC 99.
 
-       01  WS-ACUM-MES-FT              PIC ZZZZZZZZZZ9.99-.
-       01  WS-LIQUIDACION-MES-FT       PIC ZZZZZZZZZZ9.99-.
-       01  WS-DEUDA-TOTAL-FT           PIC ZZZZZZZZZZ9.99-.
-       01  WS-CREDITO-DISPONIBLE-FT    PIC ZZZZZZZZZZ9.99-.
+       01  WS-ACUM-MES-FT              PIC ZZZZZ9.99-.
+       01  WS-LIQUIDACION-MES-FT       PIC ZZZZZ9.99-.
+       01  WS-DEUDA-TOTAL-FT           PIC ZZZZZ9.99-.
+       01  WS-CREDITO-DISPONIBLE-FT    PIC ZZZZZ9.99-.
+       01  WS-LIMITE-TARJETA-FT        PIC ZZZZZ9.99-.
        01  WS-DEUDA-TOTAL              PIC 9(12)V99.
        01  WS-CREDITO-DISPONIBLE       PIC 9(12)V99.
 
 
+       LINKAGE SECTION.
+       01 LK-USER-ID PIC 9(1).  *> Recibirá un ID de usuario
 
-       PROCEDURE DIVISION.
+       PROCEDURE DIVISION USING LK-USER-ID.
        MAIN-PROGRAM.
            PERFORM 0100-INICIO.
            PERFORM 100-MENU.
@@ -358,10 +356,11 @@
                WHEN 3
                    PERFORM 300-GENERAR-REPORTE-DEUDA
                WHEN 4
-                   STOP RUN
+                   EXIT PROGRAM
                WHEN OTHER
                    DISPLAY "Opción inválida, intente nuevamente."
            END-EVALUATE.
+
        300-GENERAR-REPORTE-DEUDA.
            PERFORM 310-INICIO.
            PERFORM 320-EXTRAE-DEUDA-CURSOR.
@@ -613,7 +612,13 @@
              TO SQL-VAR-0009
            CALL 'OCSQLEXE' USING SQL-STMT-5
                                SQLCA
-           ELSE
+           END-IF
+      *    EXEC SQL
+      *       COMMIT
+      *    END-EXEC
+           CALL 'OCSQLCMT' USING SQLCA END-CALL
+
+           IF WT-TIPO-MOVIMIENTO = 'P' THEN
       *-- Actualizar la liquidación
       *        EXEC SQL
       *        UPDATE TARJETAS
@@ -833,6 +838,8 @@
            PERFORM 100-MENU.
 
        320-EXTRAE-DEUDA-CURSOR.
+           MOVE ZEROES TO WS-CONT WS-CONTX
+           INITIALIZE DB-DEUDA-DETALLE
       *    EXEC SQL
       *        DECLARE CURSOR_DEUDA CURSOR FOR
       *        SELECT ID_CLIENTE, NRO_TARJETA,
@@ -909,6 +916,8 @@
                *> Formatear línea del reporte
 
                ADD 1 TO WS-CONT
+              COMPUTE WE-LIQUIDACION-MES = WE-LIMITE-TARJETA -
+                                                  WE-LIQUIDACION-MES
               COMPUTE WS-DEUDA-TOTAL = WE-ACUM-MES - WE-LIQUIDACION-MES
               COMPUTE WS-CREDITO-DISPONIBLE =
                                       WE-LIMITE-TARJETA - WS-DEUDA-TOTAL
@@ -927,9 +936,10 @@
                DISPLAY ' NO TIENE MAS FILAS LA TABLA DE DB'
            END-IF
            END-PERFORM.
-      *    EXEC SQL CLOSE CURSOR_DEUDA END-EXEC
+      *    EXEC SQL CLOSE CURSOR_DEUDA END-EXEC.
            CALL 'OCSQLCCU' USING SQL-STMT-11
                                SQLCA
+                                               .
            DISPLAY"                                                  "
            DISPLAY"                                                  "
            DISPLAY WS-HEADER2
@@ -937,7 +947,7 @@
            DISPLAY PRTEC
            WRITE RPT-DETALLE-CLI FROM WS-HEADER2
            WRITE RPT-DETALLE-CLI FROM PRTEC
-      *     MOVE SPACES TO PRTEC
+           MOVE SPACES TO PRTEC
            PERFORM VARYING WS-CONTX FROM 1 BY 1 UNTIL WS-CONTX > WS-CONT
            MOVE RPT-ACUM-MES(WS-CONTX) TO WS-ACUM-MES-FT
            MOVE RPT-LIQUIDACION-MES(WS-CONTX)
@@ -946,16 +956,29 @@
                                        TO WS-DEUDA-TOTAL-FT
            MOVE RPT-CREDITO-DISPONIBLE(WS-CONTX)
                                        TO WS-CREDITO-DISPONIBLE-FT
+           MOVE RPT-LIMITE-TARJETA(WS-CONTX)
+                                       TO WS-LIMITE-TARJETA-FT
 
-            STRING RPT-ID-CLIENTE(WS-CONTX)        " "
-                   RPT-NRO-TARJETA(WS-CONTX)    " "
-                   RPT-FECHA-VENCIMIENTO(WS-CONTX) " "
-                   RPT-LIMITE-TARJETA(WS-CONTX)    " "
-                   WS-ACUM-MES-FT                  " "
-                   WS-LIQUIDACION-MES-FT           " "
-                   WS-DEUDA-TOTAL-FT               " "
-                   WS-CREDITO-DISPONIBLE-FT
+
+           MOVE RPT-ID-CLIENTE(WS-CONTX) TO  RP-ID-CLIENTE
+           MOVE RPT-NRO-TARJETA(WS-CONTX) TO RP-NRO-TARJETA
+           MOVE RPT-FECHA-VENCIMIENTO(WS-CONTX) TO RP-FECHA-VENCIMIENTO
+           MOVE WS-LIMITE-TARJETA-FT    TO RP-LIMITE-TARJETA
+           MOVE WS-ACUM-MES-FT  TO RP-ACUM-MES
+           MOVE WS-LIQUIDACION-MES-FT TO RP-LIQUIDACION-MES
+           MOVE WS-DEUDA-TOTAL-FT TO RP-DEUDA-TOTAL
+           MOVE WS-CREDITO-DISPONIBLE-FT TO RP-CREDITO-DISPONIBLE
+
+            STRING RP-ID-CLIENTE        " "
+                   RP-NRO-TARJETA       " "
+                   RP-FECHA-VENCIMIENTO " "
+                   RP-LIMITE-TARJETA            " "
+                   RP-ACUM-MES                 " "
+                   RP-LIQUIDACION-MES           " "
+                   RP-DEUDA-TOTAL               " "
+                   RP-CREDITO-DISPONIBLE
                   INTO PRTEC
+
               DISPLAY PRTEC
            WRITE RPT-DETALLE-CLI FROM PRTEC
            END-PERFORM

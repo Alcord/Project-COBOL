@@ -40,6 +40,9 @@
                10  FECHA-CIERRE              PIC X(10).
                10  SALDO                     PIC 9(12)V99.
 
+       01  DB-EXTRA-INFO.
+           05   DB-N-CTACTE                PIC 9(12).
+
            EXEC SQL
                END DECLARE SECTION
            END-EXEC
@@ -91,6 +94,7 @@
 
        LINKAGE SECTION.
        01  LK-OPTION PIC 9(1).
+
        PROCEDURE DIVISION USING LK-OPTION.
            PERFORM 0100-INICIO THRU 0210-CLIENTES.
            STOP RUN.
@@ -125,18 +129,24 @@
       *-----------------------------------------------------------------*
        0110-END.
 
+       0111-CABECERA-MODULO.
+           DISPLAY "===================================="
+           DISPLAY "       SISTEMA DE CLIENTES          "
+           DISPLAY "====================================".
+       0111-END.
+
        0100-END.
 
        0200-PROCEDIMIENTO.
 
        0210-CLIENTES.
-           INITIALIZE WS-OPTION WS-TXT-TITLE.
-           MOVE "Menu clientes   " TO WS-TXT-TITLE(07:16).
-           MOVE ":Modulos disponibles:" TO WS-TXT-SUBTITLE.
+           INITIALIZE WS-OPTION WS-TXT-TITLE
 
-           PERFORM 0221-PRINT-MENU.
-           DISPLAY "Ingrese una opcion: ".
-           ACCEPT WS-OPTION.
+           MOVE ":Modulos clientes:" TO WS-TXT-SUBTITLE
+
+           PERFORM 0221-PRINT-MENU
+           DISPLAY "Ingrese una opcion: "
+           ACCEPT WS-OPTION
 
            EVALUATE WS-OPTION
                WHEN 1
@@ -165,8 +175,6 @@
            DISPLAY "DEBUG: (-1) Salida incorrecta".
 
        0221-PRINT-MENU.
-           DISPLAY "+" WS-LINE "+".
-           DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
            DISPLAY WS-LEFT-WALL WS-SPACE WS-TXT-SUBTITLE WS-RGTH-WALL.
            DISPLAY WS-LEFT-WALL WS-TXTMN1 WS-RGTH-WALL.
@@ -395,7 +403,7 @@
                    PERFORM 0291-COMMIT
 
                    IF SQLCODE = 0
-                   DISPLAY "Se ha actualizado el telefono del cliente"
+                   DISPLAY "Se ha actualizado el telefono del cliente."
                    END-IF
 
                 WHEN 5
@@ -410,9 +418,9 @@
                    WHERE ID_CLIENTE =: ID-CLIENTE
                    END-EXEC
 
-                   PERFORM 0291-SQLSTATE-CHECK
-
                    PERFORM 0291-COMMIT
+
+                   PERFORM 0291-SQLSTATE-CHECK
 
                    IF SQLCODE = 0
                    DISPLAY "Se ha actualizado el correo del cliente"
@@ -424,6 +432,19 @@
 
            END-EVALUATE.
        0233-END.
+
+       0234-FIND-CTACTE.
+
+           EXEC SQL
+           SELECT ID_CTACTES
+           INTO :DB-N-CTACTE
+           FROM banco.ctactes
+           WHERE ID_CLIENTE = ID-CLIENTE
+           END-EXEC
+
+           PERFORM 0291-SQLSTATE-CHECK.
+
+       0234-END.
 
 
        0240-UPDATE-CLIENT.
@@ -529,6 +550,8 @@
                PERFORM 0260-DETALLE-CLIENTE
            END-IF
 
+           PERFORM 0234-FIND-CTACTE
+
            PERFORM 0261-PRNT-DETALLE-CLIENTE
 
            PERFORM 0260-DETALLE-CLIENTE.
@@ -550,10 +573,13 @@
            DISPLAY " Dirección         : " FUNCTION TRIM(DIRECCION)
            DISPLAY " Teléfono          : " FUNCTION TRIM(TELEFONO)
            DISPLAY " Correo            : " FUNCTION TRIM(MAIL)
+           DISPLAY " No. de CTA CRTE   : " DB-N-CTACTE
            DISPLAY "----------------------------------------------"
 
            IF TARJETA = 1
                DISPLAY " Tarjeta: Si"
+               *> Imprimir tarjeta
+
            ELSE
                DISPLAY " Tarjeta: No"
            END-IF
@@ -672,8 +698,8 @@
        0200-END.
 
        0300-FIN.
-       DISPLAY "Regresando a Menu Principal..."
-       EXIT PROGRAM.
+           DISPLAY "Regresando a Menu Principal..."
+           EXIT PROGRAM.
        0300-END.
 
       *-----------------------------------------------------------------*

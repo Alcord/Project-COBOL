@@ -113,13 +113,7 @@
            05 SQL-VAR-0008  PIC S9(9)V9(2) COMP-3.
       *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
       **********************************************************************
-       01   DB-CONN.
-           05  DB-USER                 PIC X(20) VALUE 'root'.
-           05  DB-PASSWORD             PIC X(20) VALUE 'root'.
-           05  DB-NAME                 PIC X(20) VALUE 'banco'.
-           05  DB-HOST                 PIC X(20) VALUE 'localhost'.
-           05  DB-PORT                 PIC 9(5)  VALUE 3306.
-
+           COPY "BD001".
 
       *    EXEC SQL
       *        BEGIN DECLARE SECTION
@@ -182,7 +176,7 @@
            05  FILE-CHECK-KEY          PIC X(2).
            05  ERR-MSG                 PIC X(128).
            05  ERR-CODE                PIC X(2).
-       01  OPCION                      PIC 9.
+       01  WS-OPCION                   PIC 9.
        01  WS-SALDO                    PIC ZZZZZZ9.99.
        01  WS-MONTO                    PIC S9(8)V99.
        01  WS-DOC-CLI                  PIC X(12).
@@ -193,7 +187,10 @@
        01  WS-CONT                     PIC 999.
        01  WS-CONTX                    PIC 999.
 
-       PROCEDURE DIVISION.
+       LINKAGE SECTION.
+       01 LK-USER-ID PIC 9(1).  *> Recibirá un ID de usuario
+
+       PROCEDURE DIVISION USING LK-USER-ID.
        MAIN-PROGRAM.
            PERFORM 0100-INICIO.
            PERFORM 100-MENU.
@@ -207,9 +204,8 @@
            DISPLAY "3 - Generar Extracto"
            DISPLAY "4 - Salir"
            DISPLAY "Seleccione una opción: "
-           ACCEPT OPCION
-
-           EVALUATE OPCION
+           ACCEPT WS-OPCION
+           EVALUATE WS-OPCION
                WHEN 1
                    PERFORM 100-REGISTRAR-MOVIMIENTO
                WHEN 2
@@ -218,7 +214,7 @@
                WHEN 3
                    PERFORM 300-GENERAR-EXTRACTO
                WHEN 4
-                   STOP RUN
+                   EXIT PROGRAM
                WHEN OTHER
                    DISPLAY "Opción inválida, intente nuevamente."
            END-EVALUATE.

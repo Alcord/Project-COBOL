@@ -61,21 +61,22 @@
            EVALUATE WS-OPTION
                WHEN 1
                    DISPLAY "Modulo ABM Clientes..."
-                   CALL 'MODCLI001' USING WS-OPTION
+                  CALL 'MODCLI001' USING WS-OPTION
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 2
                    DISPLAY "Modulo Cuentas Corrientes..."
-                   CALl "TARJCRE001"
+                   CALl 'CTACTE001' USING WS-OPTION
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 3
                    DISPLAY "Modulo Tarjetas de Credito..."
-                   CALL "TARJCRE001"
+                   CALL 'TARJCRE001' USING WS-OPTION
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 4
                    DISPLAY "Modulo Hipotecas..."
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 5
                    DISPLAY "Modulo Proceso Batch..."
+                   CALL 'CIEMEN001' USING WS-OPTION
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 6
                    DISPLAY "Saliendo del Sistema... Adios..."
@@ -84,8 +85,6 @@
                    STOP RUN.
 
            0220-PRINT-MENU.
-           DISPLAY "+" WS-LINE "+".
-           DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
            DISPLAY WS-LEFT-WALL WS-SPACE WS-TXT-SUBTITLE WS-RGTH-WALL.
            DISPLAY WS-LEFT-WALL WS-TXTMN1 WS-RGTH-WALL.
