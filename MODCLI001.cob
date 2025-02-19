@@ -246,6 +246,10 @@
        01  WS-OPTION-TD                         PIC 9 VALUE 0.
        01  WS-SALDO-PRNT                        PIC Z(12).99.
 
+       01  WS-VALIDATIONS.
+           05 WS-DOCUMENT-VAL   PIC 9  VALUE 0.
+           05 WS-EMAIL-VAL      PIC 9  VALUE 0.
+
        LINKAGE SECTION.
        01  LK-OPTION PIC 9(1).
 
@@ -322,16 +326,12 @@
 
            EVALUATE WS-OPTION
                WHEN 1
-                *>   DISPLAY "nuevo cliente..."
                    PERFORM 0230-NEW-CLIENT
                    PERFORM 0210-CLIENTES
                WHEN 2
-           *>   Actualizar info Cliente
-           *>        DISPLAY "Actualizar clientes"
                    PERFORM 0240-UPDATE-CLIENT
                    PERFORM 0210-CLIENTES
                WHEN 3
-               *> Eliminar clientes
                    PERFORM 0250-BAJA-CLIENTE
                    PERFORM 0210-CLIENTES
                WHEN 4
@@ -378,35 +378,30 @@
            DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
 
-      *>      DISPLAY "Inserte el tipo de documento:"
-      *>      ACCEPT WS-TIPO-DOC
-           *> VALIDAR TIPO DOC
-
            PERFORM UNTIL WS-OPTION-TD = 1 OR WS-OPTION-TD = 2
                OR WS-OPTION-TD = 3
-               DISPLAY "Seleccione el tipo de documento"
-               DISPLAY "1. Cedula (DNI)"
-               DISPLAY "2. Pasaporte (PAS)"
-               DISPLAY "3. Cancelar"
-               ACCEPT WS-OPTION-TD
+                   DISPLAY ".................................."
+                   DISPLAY "Seleccione el tipo de documento"
+                   DISPLAY "1. Cedula (DNI)"
+                   DISPLAY "2. Pasaporte (PAS)"
+                   DISPLAY "3. Cancelar"
+                   DISPLAY ".................................."
+                   DISPLAY "Seleccione el tipo de documento:"
+                   ACCEPT WS-OPTION-TD
            END-PERFORM
 
-           IF WS-OPTION-TD EQUAL 1 THEN
+           IF WS-OPTION-TD = 1
                MOVE "DNI" TO WS-TIPO-DOC
-           ELSE IF WS-OPTION-TD EQUAL 2 THEN
+           ELSE IF WS-OPTION-TD = 2
                MOVE "PAS" TO WS-TIPO-DOC
-           ELSE IF WS-OPTION-TD EQUAL 3 THEN
+           ELSE IF WS-OPTION-TD = 3
                DISPLAY "Se cancela el registro nuevo..."
                EXIT PARAGRAPH
-           ELSE
-               DISPLAY "Error de navegacion tipo doc"
-               EXIT PROGRAM
            END-IF
 
            DISPLAY "Inserte el documento: "
            ACCEPT WS-DOCUMENT
            *> VALIDAR DOCUENT
-
 
            *> VALIDAR QUE NO EXISTA YA EL DOCUMENTO
            MOVE WS-DOCUMENT TO DB-AUX-DOC
@@ -431,6 +426,12 @@
 
            DISPLAY "Inserte el correo:"
            ACCEPT WS-MAIL
+
+           CALL "VALEMAIL" USING WS-EMAIL-VAL WS-MAIL
+           IF WS-EMAIL-VAL = 0
+               DISPLAY "Correo invalido."
+               PERFORM 0230-NEW-CLIENT
+           END-IF
 
            *> WS-MAX-ID Indice para el siguiente registro
       *    EXEC SQL
@@ -1142,7 +1143,7 @@
            END-IF
 
            IF ACTIVA = 1
-               DISPLAY "[38;5;120mCuenta activa[0m"
+           *>    DISPLAY "[38;5;120mCuenta activa[0m"
                DISPLAY " Cuenta activa"
            ELSE
                DISPLAY " Cuenta dada de baja "
