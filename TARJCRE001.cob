@@ -204,8 +204,9 @@
            05 SQL-VAR-0016  PIC S9(13)V9(2) COMP-3.
       *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
       **********************************************************************
-
            COPY "BD001".
+
+
 
       *    EXEC SQL
       *        BEGIN DECLARE SECTION
@@ -356,13 +357,13 @@
                WHEN 3
                    PERFORM 300-GENERAR-REPORTE-DEUDA
                WHEN 4
-                   EXIT PROGRAM
+                   STOP RUN
                WHEN OTHER
                    DISPLAY "Opción inválida, intente nuevamente."
            END-EVALUATE.
 
        300-GENERAR-REPORTE-DEUDA.
-           PERFORM 310-INICIO.
+           PERFORM 310-APERTURA-ARCHIVO.
            PERFORM 320-EXTRAE-DEUDA-CURSOR.
            PERFORM 100-MENU.
 
@@ -480,6 +481,7 @@
                                SQLCA
                    .
            display "fecha: "WT-FECHA-MOVIMIENTO
+
            *> Obtener el siguiente ID_MOVIMIENTO
       *    EXEC SQL
       *        SELECT COALESCE(MAX(ID_MOVIMIENTO), 0) + 1
@@ -986,7 +988,7 @@
               DISPLAY WS-HEADER3
            CLOSE RPT-FILE-DETAIL.
 
-       310-INICIO.
+       310-APERTURA-ARCHIVO.
            OPEN OUTPUT RPT-FILE-DETAIL
            INITIALIZE WS-DOC-CLI.
 

@@ -372,6 +372,7 @@
            ACCEPT WS-DOCUMENT
            *> VALIDAR DOCUENT
 
+
            DISPLAY "Inserte el Nombre:"
            ACCEPT WS-NOMBRE
 
@@ -889,7 +890,6 @@
            MOVE SQL-VAR-0009 TO DB-N-CTACTE
 
            PERFORM 0291-SQLSTATE-CHECK.
-
        0234-END.
 
 
@@ -1021,7 +1021,6 @@
            PERFORM 0261-PRNT-DETALLE-CLIENTE
 
            PERFORM 0260-DETALLE-CLIENTE.
-
        0260-END.
 
        0261-PRNT-DETALLE-CLIENTE.
@@ -1072,10 +1071,7 @@
            DISPLAY "----------------------------------------------"
            DISPLAY " Saldo disponible  : $" WS-SALDO-PRNT
            DISPLAY "**********************************************".
-
-
        0261-END.
-
 
 
        0241-PRNT-MN-UPDATE.

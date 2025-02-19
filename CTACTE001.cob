@@ -53,16 +53,17 @@
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 481.
-           05 SQL-STMT   PIC X(481) VALUE 'SELECT A.NOMBRE_CLIENTE,A.APE
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 519.
+           05 SQL-STMT   PIC X(519) VALUE 'SELECT A.NOMBRE_CLIENTE,A.APE
       -    'LLIDOS_CLIENTE,B.FECHA_ULT_MOV,B.SALDO_ACTUAL FROM (SELECT I
       -    'D_CLIENTE,DOC_CLIENTE,NOMBRE_CLIENTE,APELLIDOS_CLIENTE FROM 
       -    'BANCO.CLIENTES WHERE DOC_CLIENTE = TRIM(?) LIMIT 1) A,(SELEC
-      -    'T MAX(ID_CLIENTE) ID_CLIENTE,MAX(COD_ULT_MOV) COD_ULT_MOV,MA
-      -    'X(FECHA_ULT_MOV) FECHA_ULT_MOV,MAX(SALDO_ACTUAL) SALDO_ACTUA
-      -    'L FROM BANCO.CTACTES WHERE ID_CLIENTE = (SELECT ID_CLIENTE F
-      -    'ROM BANCO.CLIENTES WHERE DOC_CLIENTE = TRIM(?) LIMIT 1)) B W
-      -    'HERE A.ID_CLIENTE = B.ID_CLIENTE'.
+      -    'T ID_CLIENTE,COD_ULT_MOV,FECHA_ULT_MOV,SALDO_ACTUAL FROM BAN
+      -    'CO.CTACTES WHERE CONCAT(ID_CLIENTE,COD_ULT_MOV) IN (SELECT C
+      -    'ONCAT(MAX(ID_CLIENTE),MAX(COD_ULT_MOV)) FROM BANCO.CTACTES W
+      -    'HERE ID_CLIENTE = (SELECT ID_CLIENTE FROM BANCO.CLIENTES WHE
+      -    'RE DOC_CLIENTE = TRIM(?) LIMIT 1)))B WHERE A.ID_CLIENTE = B.
+      -    'ID_CLIENTE'.
       **********************************************************************
        01 SQL-STMT-1.
            05 SQL-IPTR   POINTER VALUE NULL.
@@ -114,6 +115,7 @@
       *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
       **********************************************************************
            COPY "BD001".
+
 
       *    EXEC SQL
       *        BEGIN DECLARE SECTION
@@ -214,52 +216,87 @@
                WHEN 3
                    PERFORM 300-GENERAR-EXTRACTO
                WHEN 4
-                   EXIT PROGRAM
+                   PERFORM 0300-FIN
                WHEN OTHER
                    DISPLAY "Opción inválida, intente nuevamente."
            END-EVALUATE.
 
        100-CONSULTA-CLIENTE.
-
+           DISPLAY "Ingrese (-1) para salir"
            DISPLAY "Ingrese Documento Cliente: ".
            ACCEPT WS-DOC-CLI
-
-           IF WS-DOC-CLI < 0 THEN
-              PERFORM 100-CONSULTA-CLIENTE
-           END-IF
 
            PERFORM 100-EXISTE-CLIENTE
 
            IF WS-EXISTE-CLIENTE = 'N' THEN
-              DISPLAY "Doc. No Existe: " WS-DOC-CLI
+              DISPLAY "Ingrese (-1) para salir"
               DISPLAY "Favor, Ingresar Nuevamente: "
+              IF WS-DOC-CLI = "-1" THEN
+                 DISPLAY "Regresando al menu principal: "
+                 PERFORM 0300-FIN
+              END-IF
               PERFORM 100-CONSULTA-CLIENTE
            END-IF.
 
        100-REGISTRAR-MOVIMIENTO.
 
            PERFORM 100-CONSULTA-CLIENTE
-           DISPLAY "Ingrese tipo de movim (D=Depósito, E=Extracción): ".
-           ACCEPT WS-TIPO-MOVIMIENTO.
-
-           DISPLAY "Ingrese el monto: ".
-           ACCEPT WS-MONTO.
-           IF WS-TIPO-MOVIMIENTO = 'D' THEN
-              MOVE 1 TO WX-TIPO-MOVIMIENTO
-              COMPUTE WS-MONTO = WS-MONTO * (1)
-           ELSE
-              MOVE 2 TO WX-TIPO-MOVIMIENTO
-              COMPUTE WS-MONTO = WS-MONTO * (-1)
-           END-IF
-
+           PERFORM 350-VALIDAR-TIPO
+           PERFORM 360-VALIDAR-MONTO
            PERFORM 100-INSERTA-MOVIMIENTO
+
            DISPLAY "NUEVO MOVIMIENTO " WS-NEWID-CTACTE
+
            IF WS-NEWID-CTACTE > 0 THEN
                DISPLAY "Movimiento registrado correctamente."
            ELSE
                DISPLAY "Movimiento no registrado correctamente."
            END-IF.
            PERFORM 100-MENU.
+
+       350-VALIDAR-TIPO.
+
+           DISPLAY "Ingrese (-1) para salir"
+           DISPLAY "Ingrese tipo de movim (D=Depósito, E=Extracción): "
+           ACCEPT WS-TIPO-MOVIMIENTO
+
+           IF WS-TIPO-MOVIMIENTO NOT = 'D' AND
+                                     WS-TIPO-MOVIMIENTO NOT = 'E' THEN
+               DISPLAY "Tipo de movimien inválido. Debe ser 'D' o 'E'."
+               MOVE SPACES TO WS-TIPO-MOVIMIENTO
+               PERFORM 350-VALIDAR-TIPO
+           END-IF.
+
+           IF WS-TIPO-MOVIMIENTO = "-1"
+               DISPLAY "Regresando a Menu Clientes..."
+               PERFORM 0300-FIN
+           END-IF.
+
+       360-VALIDAR-MONTO.
+           DISPLAY "Ingrese (-1) para salir"
+           DISPLAY "Ingrese el monto:"
+           ACCEPT WS-MONTO.
+
+           IF WS-MONTO > 0 THEN
+
+             IF WS-TIPO-MOVIMIENTO = 'D' THEN
+                MOVE 1 TO WX-TIPO-MOVIMIENTO
+                COMPUTE WS-MONTO = WS-MONTO * (1)
+             ELSE
+                MOVE 2 TO WX-TIPO-MOVIMIENTO
+                COMPUTE WS-MONTO = WS-MONTO * (-1)
+             END-IF
+
+           ELSE IF WS-MONTO = -1 THEN
+               DISPLAY "Regresando a Menu Clientes..."
+               PERFORM 0300-FIN
+
+           ELSE IF WS-MONTO < -1 THEN
+               PERFORM 360-VALIDAR-MONTO
+
+           END-IF.
+
+
 
        200-CONSULTAR-SALDO.
 
@@ -283,15 +320,18 @@
       *                 APELLIDOS_CLIENTE
       *            FROM BANCO.CLIENTES
       *           WHERE DOC_CLIENTE = TRIM(:WT-DOC-CLI) LIMIT 1) A,
-      *         (SELECT MAX(ID_CLIENTE) ID_CLIENTE,
-      *                 MAX(COD_ULT_MOV) COD_ULT_MOV,
-      *                 MAX(FECHA_ULT_MOV) FECHA_ULT_MOV,
-      *                 MAX(SALDO_ACTUAL) SALDO_ACTUAL
+      *         (SELECT ID_CLIENTE,
+      *                 COD_ULT_MOV,
+      *                 FECHA_ULT_MOV,
+      *                 SALDO_ACTUAL
       *            FROM BANCO.CTACTES
-      *           WHERE ID_CLIENTE = (SELECT ID_CLIENTE
-      *                                FROM BANCO.CLIENTES
-      *                               WHERE DOC_CLIENTE =
-      *                               TRIM(:WT-DOC-CLI) LIMIT 1)) B
+      *            WHERE CONCAT(ID_CLIENTE,COD_ULT_MOV) IN
+      *            (SELECT CONCAT(MAX(ID_CLIENTE),MAX(COD_ULT_MOV))
+      *               FROM BANCO.CTACTES
+      *              WHERE ID_CLIENTE = (SELECT ID_CLIENTE
+      *                                   FROM BANCO.CLIENTES
+      *                                  WHERE DOC_CLIENTE =
+      *                                  TRIM(:WT-DOC-CLI) LIMIT 1 )) )B
       *         WHERE A.ID_CLIENTE = B.ID_CLIENTE
       *    END-EXEC.
            IF SQL-PREP OF SQL-STMT-0 = 'N'
@@ -591,6 +631,10 @@
                                SQLERRMC(1:SQLERRML)
                    END-IF
                END-IF.
+       0300-FIN.
+           DISPLAY "Regresando a Menu Principal..."
+           EXIT PROGRAM.
+       END PROGRAM CTACTE001.
       **********************************************************************
       *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
 

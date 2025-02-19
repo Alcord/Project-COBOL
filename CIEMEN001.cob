@@ -63,6 +63,24 @@
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 60.
+           05 SQL-STMT   PIC X(60) VALUE 'SELECT DATE_FORMAT(LAST_DAY(CU
+      -    'RDATE()),''%d/%m/%Y'') FROM DUAL'.
+      **********************************************************************
+       01 SQL-STMT-2.
+           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 72.
+           05 SQL-STMT   PIC X(72) VALUE 'SELECT CONCAT(UPPER(MONTHNAME(
+      -    'CURDATE())),'' '',YEAR(CURDATE())) FROM DUAL'.
+      **********************************************************************
+       01 SQL-STMT-3.
+           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 17.
            05 SQL-STMT   PIC X(17) VALUE 'SELECT DATABASE()'.
       **********************************************************************
@@ -74,12 +92,14 @@
            05 SQL-VAR-0007  PIC S9(13)V9(2) COMP-3.
       *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
       **********************************************************************
+       COPY "BD001".
 
-           COPY "BD001".
 
       *    EXEC SQL
       *        BEGIN DECLARE SECTION
       *    END-EXEC
+       01  WT-FECHA-CORTE              PIC X(10).
+       01  WT-PERIODO                  PIC X(15).
 
        01  DB-VARS.
            05  BUFFER                  PIC X(1024).
@@ -101,19 +121,38 @@
       *        END DECLARE SECTION
       *    END-EXEC
 
+       01  FECHA.
+           05  WS-DIA             PIC 99.
+           05  WS-MES             PIC 99.
+           05  WS-ANIO            PIC 9999.
+
+       01  WS-FECHA-FORMATO   PIC XX/XX/XXXX.
+
+
+       01  FILLER-0            PIC X(16) VALUE 'FECHA DE CORTE: '.
+       01  FILLER-1            PIC X(35) VALUE
+                                 '                        GENERADO: '.
+
+       01  FILLER-2            PIC X(16) VALUE 'PERIODO       : '.
+       01  FILLER-3            PIC X(30) VALUE
+                                 '                   USUARIO : '.
+
+       01  WS-USUARIO          PIC X(50)  VALUE 'ADM-1'.
       *> Cabecera Reporte consolidado
+
        01  WS-HEADER-00             PIC X(58) VALUE
            "----------------------------------------------------------".
-       01  WS-HEADER-01             PIC X(24) VALUE
-           "------------------------".
+       01  WS-HEADER-01             PIC X(26) VALUE
+           "--------------------------".
        01  WS-HEADER-02             PIC X(58) VALUE
-           "****************************** REPORTE CONSOLIDADO *******".
-       01  WS-HEADER-03             PIC X(24) VALUE
-           "************************".
+           "*******************      INFORME FINANCIERO CONSOLIDADO   ".
+       01  WS-HEADER-03             PIC X(26) VALUE
+           "  ************************".
        01  WS-HEADER-04             PIC X(58) VALUE
-           "ID_CLIENTE| NOM_CLIENTE             |SAL_CTACTE |SAL_HIPOT".
-       01  WS-HEADER-05           PIC X(24) VALUE
-           "EC|SAL_TARJETA|SAL_TOTAL".
+           "ID CLIENTE| NOMBRES                   |SALDO CTACTE  |SALD".
+       01  WS-HEADER-05           PIC X(26) VALUE
+           "O HIPOTECA|SALDO TARJETA |".
+
       *> Fin Cabecera Reporte consolidado
 
 
@@ -131,6 +170,8 @@
            05 WS-AC-SALDO-HIPOTECA                PIC S9(12)V99.
            05 WS-AC-SALDO-TARJETA                 PIC S9(12)V99.
            05 WS-AC-NRO-HIPOTECAS                 PIC 9(03).
+           05 WS-AC-NRO-CTACTE                    PIC 9(03).
+           05 WS-AC-NRO-TARJETA                   PIC 9(03).
 
        01  WS-INDICADORES-IMPRESION.
            05 WS-IM-SALDO-CTACTE                  PIC ZZZZZZ9.99-.
@@ -142,18 +183,20 @@
        01  WS-OPCION                   PIC 9.
        01  WS-CONT                     PIC 999.
        01  WS-CONTX                    PIC 999.
+       01  WS-FECHA                    PIC X(10).
+
+       01  CONT-INDICE.
+           05  WS-CT-SAL                   PIC ZZZZ9.
+           05  WS-CT-HIP                   PIC ZZZZ9.
+           05  WS-CT-TAR                   PIC ZZZZ9.
 
        LINKAGE SECTION.
        01 LK-USER-ID PIC 9(1).  *> Recibirá un ID de usuario
 
        PROCEDURE DIVISION USING LK-USER-ID.
-
        MAIN-PROGRAM.
            PERFORM 0100-INICIO.
-           PERFORM UNTIL WS-OPCION = 3
-               PERFORM 100-MENU
-           END-PERFORM.
-
+           PERFORM 100-MENU.
 
        100-MENU.
            DISPLAY "===================================="
@@ -178,17 +221,16 @@
 
        200-GENERAR-INDICADORES.
            MOVE 'S' TO WS-ENCENDER.
-           PERFORM 310-INICIO
+           PERFORM 310-APERTURA-ARCHIVO.
            PERFORM 320-EXTRAE-CONSOLIDADO-CURSOR.
-
-       100-GENERAR-CONSOLIDADO.
-           MOVE 'N' TO WS-ENCENDER.
-           PERFORM 310-INICIO.
-           PERFORM 320-EXTRAE-CONSOLIDADO-CURSOR.
+           PERFORM 000-IMPRIME-CABECERA.
+           PERFORM 000-IMPRIME-DETALLE.
+           PERFORM 000-CIERRE-ARCHIVO.
+           PERFORM 100-MENU.
 
        320-EXTRAE-CONSOLIDADO-CURSOR.
            MOVE ZEROES TO WS-CONT WS-CONTX.
-           INITIALIZE DB-CONSOLIDADO-DETALLE.
+           INITIALIZE DB-CONSOLIDADO-DETALLE WS-INDICADORES-DETAIL.
       *    EXEC SQL
       *        DECLARE CURSOR_CONSOLIDADO CURSOR FOR
       *        SELECT C.ID_CLIENTE, C.NOMBRE_CLIENTE,
@@ -286,44 +328,41 @@
                  IF WC-SALDO-HIPOTECA > 0 THEN
                     ADD 1 TO WS-AC-NRO-HIPOTECAS
                  END-IF
+
+                 IF WC-SALDO-CTACTE > 0 THEN
+                    ADD 1 TO WS-AC-NRO-CTACTE
+                 END-IF
+
+                 IF WC-SALDO-TARJETA > 0 THEN
+                    ADD 1 TO WS-AC-NRO-TARJETA
+                 END-IF
+
               END-IF
 
            ELSE
                DISPLAY ' NO TIENE MAS FILAS LA TABLA DE DB'
            END-IF
            END-PERFORM
-      *    EXEC SQL CLOSE CURSOR_CONSOLIDADO END-EXEC
+      *    EXEC SQL CLOSE CURSOR_CONSOLIDADO END-EXEC.
            CALL 'OCSQLCCU' USING SQL-STMT-0
                                SQLCA
-           DISPLAY"                                                  "
-           STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
-           WRITE RPT-DETALLE-CLI
-           DISPLAY RPT-DETALLE-CLI
-           STRING WS-HEADER-02 WS-HEADER-03 INTO RPT-DETALLE-CLI
-           WRITE RPT-DETALLE-CLI
-           DISPLAY RPT-DETALLE-CLI
-           STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
-           WRITE RPT-DETALLE-CLI
-           DISPLAY RPT-DETALLE-CLI
-           STRING WS-HEADER-04 WS-HEADER-05 INTO RPT-DETALLE-CLI
-           WRITE RPT-DETALLE-CLI
-           DISPLAY RPT-DETALLE-CLI
-           STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
-           WRITE RPT-DETALLE-CLI
-           MOVE SPACES TO RPT-DETALLE-CLI
+                                                     .
+
+       000-IMPRIME-DETALLE.
+           MOVE ZEROES TO  WS-CONTX.
+           INITIALIZE CONT-INDICE.
            PERFORM VARYING WS-CONTX FROM 1 BY 1
                                            UNTIL WS-CONTX > WS-CONT
 
               STRING RPT-ID-CLIENTE  (WS-CONTX)     "|"
-                     RPT-NOMBRE      (WS-CONTX)     "|"
-                     RPT-SALDO-CTACTE(WS-CONTX)     "|"
-                     RPT-SALDO-HIPOTECA(WS-CONTX)   "|"
-                     RPT-SALDO-TARJETA (WS-CONTX)   "|"
-                     RPT-SALDO-TOTAL   (WS-CONTX)
+                     RPT-NOMBRE      (WS-CONTX)     "  | "
+                     RPT-SALDO-CTACTE(WS-CONTX)     "  | "
+                     RPT-SALDO-HIPOTECA(WS-CONTX)   "  | "
+                     RPT-SALDO-TARJETA (WS-CONTX)   "  |"
                   INTO RPT-DETALLE-CLI
 
               DISPLAY RPT-DETALLE-CLI
-           WRITE RPT-DETALLE-CLI
+              WRITE RPT-DETALLE-CLI
            END-PERFORM
              MOVE SPACES TO RPT-DETALLE-CLI
              STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
@@ -337,52 +376,147 @@
                MOVE WS-AC-NRO-HIPOTECAS   TO WS-IM-NRO-HIPOTECAS
 
 
-               DISPLAY "****************************************"
-               DISPLAY "   INDICADORES      |   $VALOR"
-               DISPLAY "****************************************"
-               DISPLAY " CREDITO OTORGADO   |  " WS-IM-SALDO-CTACTE
-               DISPLAY " CUENTA CORRIENTE   |  " WS-IM-SALDO-HIPOTECA
-               DISPLAY " TARJETA            |  " WS-IM-SALDO-TARJETA
-               DISPLAY " N° HIPOTECA ACTIVA |  " WS-IM-NRO-HIPOTECAS
-               DISPLAY "****************************************"
+           DISPLAY "***************************************************"
+           DISPLAY "   INDICADORES      |           VALOR"
+           DISPLAY "***************************************************"
+           DISPLAY " CREDITO OTORGADO   |    " WS-IM-SALDO-HIPOTECA
+           DISPLAY " CUENTA CORRIENTE   |    " WS-IM-SALDO-CTACTE
+           DISPLAY " SALDO TOTAL TARJETA|    " WS-IM-SALDO-TARJETA
+           DISPLAY "***************************************************"
 
-           WRITE RPT-DETALLE-CLI
-                  FROM "****************************************"
-           WRITE RPT-DETALLE-CLI
-                 FROM "   INDICADORES      |   $VALOR"
-           WRITE RPT-DETALLE-CLI
-                 FROM "****************************************"
-
-           MOVE SPACES TO RPT-DETALLE-CLI
-           STRING  " CREDITO OTORGADO   |  " WS-IM-SALDO-CTACTE
-              INTO RPT-DETALLE-CLI
             WRITE RPT-DETALLE-CLI
+            FROM "***************************************"
+               WRITE RPT-DETALLE-CLI
+            FROM "   INDICADORES      | NRO |   VALOR"
+            WRITE RPT-DETALLE-CLI
+             FROM "***************************************"
 
+            MOVE WS-IM-NRO-HIPOTECAS TO WS-CT-HIP
             MOVE SPACES TO RPT-DETALLE-CLI
-           STRING  " CUENTA CORRIENTE   |  " WS-IM-SALDO-HIPOTECA
-              INTO RPT-DETALLE-CLI
-            WRITE RPT-DETALLE-CLI
+            STRING" CREDITO OTORGADO   |"WS-CT-HIP"|  "
+                                                    WS-IM-SALDO-HIPOTECA
+                INTO RPT-DETALLE-CLI
+               WRITE RPT-DETALLE-CLI
 
+            MOVE WS-AC-NRO-CTACTE TO WS-CT-SAL
+               MOVE SPACES TO RPT-DETALLE-CLI
+             STRING" CUENTA CORRIENTE   |"WS-CT-SAL"|  "
+                                                    WS-IM-SALDO-CTACTE
+                 INTO RPT-DETALLE-CLI
+               WRITE RPT-DETALLE-CLI
+
+            MOVE WS-AC-NRO-TARJETA TO WS-CT-TAR
+               MOVE SPACES TO RPT-DETALLE-CLI
+             STRING  " SALDO TOTAL TARJETA|"WS-CT-TAR"|  "
+                                                    WS-IM-SALDO-TARJETA
+                 INTO RPT-DETALLE-CLI
+                WRITE RPT-DETALLE-CLI
+
+            WRITE RPT-DETALLE-CLI
+            FROM "***************************************"
            MOVE SPACES TO RPT-DETALLE-CLI
-           STRING  " TARJETA            |  "  WS-IM-SALDO-TARJETA
-              INTO RPT-DETALLE-CLI
-            WRITE RPT-DETALLE-CLI
 
-           MOVE SPACES TO RPT-DETALLE-CLI
-           STRING  " N° HIPOTECA ACTIVA |  "  WS-IM-NRO-HIPOTECAS
-              INTO RPT-DETALLE-CLI
-            WRITE RPT-DETALLE-CLI
+           END-IF.
 
-           END-IF
+       000-CIERRE-ARCHIVO.
            CLOSE RPT-FILE-DETAIL.
 
-       310-INICIO.
-           OPEN OUTPUT RPT-FILE-DETAIL.
+       000-IMPRIME-CABECERA.
 
-       0300-FIN.
-       DISPLAY "Regresando a Menu Principal..."
-       EXIT PROGRAM.
-       0300-END.
+           DISPLAY"                                                  "
+           STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+           STRING WS-HEADER-02 WS-HEADER-03 INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+           STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+
+           MOVE SPACES TO RPT-DETALLE-CLI
+           STRING FILLER-0 WT-FECHA-CORTE FILLER-1 WS-FECHA-FORMATO
+              INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+
+           MOVE SPACES TO RPT-DETALLE-CLI
+           STRING FILLER-2 WT-PERIODO FILLER-3 WS-USUARIO
+              INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+
+           STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+
+           MOVE SPACES TO RPT-DETALLE-CLI
+           STRING WS-HEADER-04 WS-HEADER-05 INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+           STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
+           WRITE RPT-DETALLE-CLI
+           DISPLAY RPT-DETALLE-CLI
+           MOVE SPACES TO RPT-DETALLE-CLI.
+
+       310-APERTURA-ARCHIVO.
+
+           OPEN OUTPUT RPT-FILE-DETAIL
+           ACCEPT WS-FECHA FROM DATE
+           STRING "20" WS-FECHA(1:2) INTO WS-ANIO
+           MOVE WS-FECHA(3:2) TO WS-MES
+           MOVE WS-FECHA(5:2) TO WS-DIA
+           STRING WS-DIA "/" WS-MES "/" WS-ANIO INTO WS-FECHA-FORMATO
+           MOVE SPACES TO WT-FECHA-CORTE WT-PERIODO
+
+      *    EXEC SQL
+      *       SELECT DATE_FORMAT(LAST_DAY(CURDATE()), '%d/%m/%Y')
+      *         INTO :WT-FECHA-CORTE
+      *        FROM DUAL
+      *    END-EXEC.
+           IF SQL-PREP OF SQL-STMT-1 = 'N'
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 WT-FECHA-CORTE
+               MOVE 'X' TO SQL-TYPE(1)
+               MOVE 10 TO SQL-LEN(1)
+               MOVE 1 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-1
+                                   SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
+           END-IF
+           CALL 'OCSQLEXE' USING SQL-STMT-1
+                               SQLCA
+                   .
+      *    EXEC SQL
+      *          SELECT CONCAT(UPPER(MONTHNAME(CURDATE())), ' ',
+      *                                     YEAR(CURDATE()))
+      *            INTO :WT-PERIODO
+      *          FROM DUAL
+      *    END-EXEC.
+           IF SQL-PREP OF SQL-STMT-2 = 'N'
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 WT-PERIODO
+               MOVE 'X' TO SQL-TYPE(1)
+               MOVE 15 TO SQL-LEN(1)
+               MOVE 1 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-2
+                                   SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
+           END-IF
+           CALL 'OCSQLEXE' USING SQL-STMT-2
+                               SQLCA
+                   .
+
+       100-GENERAR-CONSOLIDADO.
+           MOVE 'N' TO WS-ENCENDER.
+           PERFORM 310-APERTURA-ARCHIVO.
+           PERFORM 320-EXTRAE-CONSOLIDADO-CURSOR.
+           PERFORM 000-IMPRIME-CABECERA.
+           PERFORM 000-IMPRIME-DETALLE.
+           PERFORM 000-CIERRE-ARCHIVO.
+           PERFORM 100-MENU.
 
        0100-INICIO.
       *-----------------------------------------------------------------
@@ -412,18 +546,18 @@
       *    EXEC SQL
       *       SELECT DATABASE() INTO :BUFFER
       *    END-EXEC
-           IF SQL-PREP OF SQL-STMT-1 = 'N'
+           IF SQL-PREP OF SQL-STMT-3 = 'N'
                SET SQL-ADDR(1) TO ADDRESS OF
                  BUFFER
                MOVE 'X' TO SQL-TYPE(1)
                MOVE 1024 TO SQL-LEN(1)
                MOVE 1 TO SQL-COUNT
                CALL 'OCSQLPRE' USING SQLV
-                                   SQL-STMT-1
+                                   SQL-STMT-3
                                    SQLCA
                SET SQL-HCONN OF SQLCA TO NULL
            END-IF
-           CALL 'OCSQLEXE' USING SQL-STMT-1
+           CALL 'OCSQLEXE' USING SQL-STMT-3
                                SQLCA
 
            DISPLAY 'BASE DE DATOS ACTUAL: ' BUFFER
@@ -451,6 +585,10 @@
                                SQLERRMC(1:SQLERRML)
                    END-IF
                END-IF.
+
+       0300-FIN.
+           DISPLAY "Regresando a Menu Principal..."
+           EXIT PROGRAM.
       **********************************************************************
       *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
 
@@ -481,5 +619,7 @@
       *  WC-SALDO-TOTAL       NOT IN USE
       *  WS-EXISTE-CLIENTE    NOT IN USE
       *  WS-NEWID-CTACTE      NOT IN USE
+      *  WT-FECHA-CORTE           IN USE CHAR(10)
       *  WT-MONTO             NOT IN USE
+      *  WT-PERIODO               IN USE CHAR(15)
       **********************************************************************

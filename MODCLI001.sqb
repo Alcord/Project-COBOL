@@ -209,11 +209,6 @@
            ACCEPT WS-TIPO-DOC
            *> VALIDAR TIPO DOC
 
-           IF LK-TIPO NOT = "DNI" AND LK-TIPO NOT = "PAS"
-               DISPLAY "Error: Tipo de documento inválido."
-               EXIT PARAGRAPH
-           END-IF
-
            DISPLAY "Inserte el documento: "
            ACCEPT WS-DOCUMENT
            *> VALIDAR DOCUENT

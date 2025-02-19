@@ -20,8 +20,9 @@
            05  RP-CREDITO-DISPONIBLE          PIC ZZZZZ9.99-.
 
        WORKING-STORAGE SECTION.
-
            COPY "BD001".
+
+
 
            EXEC SQL
                BEGIN DECLARE SECTION
@@ -172,13 +173,13 @@
                WHEN 3
                    PERFORM 300-GENERAR-REPORTE-DEUDA
                WHEN 4
-                   EXIT PROGRAM
+                   STOP RUN
                WHEN OTHER
                    DISPLAY "Opción inválida, intente nuevamente."
            END-EVALUATE.
 
        300-GENERAR-REPORTE-DEUDA.
-           PERFORM 310-INICIO.
+           PERFORM 310-APERTURA-ARCHIVO.
            PERFORM 320-EXTRAE-DEUDA-CURSOR.
            PERFORM 100-MENU.
 
@@ -244,6 +245,7 @@
                INTO :WT-FECHA-MOVIMIENTO
            END-EXEC.
            display "fecha: "WT-FECHA-MOVIMIENTO
+
            *> Obtener el siguiente ID_MOVIMIENTO
            EXEC SQL
                SELECT COALESCE(MAX(ID_MOVIMIENTO), 0) + 1
@@ -510,7 +512,7 @@
               DISPLAY WS-HEADER3
            CLOSE RPT-FILE-DETAIL.
 
-       310-INICIO.
+       310-APERTURA-ARCHIVO.
            OPEN OUTPUT RPT-FILE-DETAIL
            INITIALIZE WS-DOC-CLI.
 
