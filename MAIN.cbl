@@ -37,6 +37,8 @@
 
        LOCAL-STORAGE SECTION.
        01  WS-OPTION       PIC 9(01).
+       01  WS-OPTION2       PIC 9(01).
+
 
       *-----------------------
        PROCEDURE DIVISION.

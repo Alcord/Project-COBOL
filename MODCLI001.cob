@@ -133,6 +133,16 @@
            05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 91.
+           05 SQL-STMT   PIC X(91) VALUE 'SELECT COUNT (*) FROM banco.cl
+      -    'ientes WHERE TRIM(DOC_CLIENTE) = TRIM(?) INSERT INTO cliente
+      -    's'.
+      **********************************************************************
+       01 SQL-STMT-11.
+           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 63.
            05 SQL-STMT   PIC X(63) VALUE 'UPDATE CLIENTES SET EMAIL_CLIE
@@ -183,6 +193,8 @@
 
        01  DB-EXTRA-INFO.
            05   DB-N-CTACTE                PIC 9(12).
+           05   DB-COUNT-CTE               PIC 99.
+           05   DB-AUX-DOC                 PIC X(12).
 
       *    EXEC SQL
       *        END DECLARE SECTION
@@ -231,7 +243,8 @@
                05  WS-SALDO                     PIC 9(12)V99.
 
        01  WS-OPTION                            PIC 9 VALUE 0.
-       01  WS-SALDO-PRNT                        PIC Z9(12),99.
+       01  WS-OPTION-TD                         PIC 9 VALUE 0.
+       01  WS-SALDO-PRNT                        PIC Z(12).99.
 
        LINKAGE SECTION.
        01  LK-OPTION PIC 9(1).
@@ -359,18 +372,49 @@
        0222-END.
 
        0230-NEW-CLIENT.
+           INITIALIZE WS-OPTION-TD WS-CLIENT
            MOVE "Registrar cliente" TO WS-TXT-TITLE(07:17).
            DISPLAY "+" WS-LINE "+".
            DISPLAY WS-TITLE.
            DISPLAY "+" WS-LINE "+".
 
-           DISPLAY "-Inserte el tipo de documento:"
-           ACCEPT WS-TIPO-DOC
+      *>      DISPLAY "Inserte el tipo de documento:"
+      *>      ACCEPT WS-TIPO-DOC
            *> VALIDAR TIPO DOC
+
+           PERFORM UNTIL WS-OPTION-TD = 1 OR WS-OPTION-TD = 2
+               OR WS-OPTION-TD = 3
+               DISPLAY "Seleccione el tipo de documento"
+               DISPLAY "1. Cedula (DNI)"
+               DISPLAY "2. Pasaporte (PAS)"
+               DISPLAY "3. Cancelar"
+               ACCEPT WS-OPTION-TD
+           END-PERFORM
+
+           IF WS-OPTION-TD EQUAL 1 THEN
+               MOVE "DNI" TO WS-TIPO-DOC
+           ELSE IF WS-OPTION-TD EQUAL 2 THEN
+               MOVE "PAS" TO WS-TIPO-DOC
+           ELSE IF WS-OPTION-TD EQUAL 3 THEN
+               DISPLAY "Se cancela el registro nuevo..."
+               EXIT PARAGRAPH
+           ELSE
+               DISPLAY "Error de navegacion tipo doc"
+               EXIT PROGRAM
+           END-IF
 
            DISPLAY "Inserte el documento: "
            ACCEPT WS-DOCUMENT
            *> VALIDAR DOCUENT
+
+
+           *> VALIDAR QUE NO EXISTA YA EL DOCUMENTO
+           MOVE WS-DOCUMENT TO DB-AUX-DOC
+
+           IF DB-COUNT-CTE > 0
+               DISPLAY "Documento ya registrado en el sistema..."
+               PERFORM 0230-NEW-CLIENT
+           END-IF
 
 
            DISPLAY "Inserte el Nombre:"
@@ -892,6 +936,41 @@
            PERFORM 0291-SQLSTATE-CHECK.
        0234-END.
 
+       0235-CTE-EXIST.
+
+      *    EXEC SQL
+
+      *        SELECT COUNT (*)
+      *        INTO :DB-N-CTACTE
+      *        FROM banco.clientes
+      *        WHERE TRIM(DOC_CLIENTE) = TRIM(:DB-AUX-DOC)
+      *        INSERT INTO clientes
+
+      *    END-EXEC
+           IF SQL-PREP OF SQL-STMT-10 = 'N'
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 SQL-VAR-0009
+               MOVE '3' TO SQL-TYPE(1)
+               MOVE 7 TO SQL-LEN(1)
+               MOVE X'00' TO SQL-PREC(1)
+               SET SQL-ADDR(2) TO ADDRESS OF
+                 DB-AUX-DOC
+               MOVE 'X' TO SQL-TYPE(2)
+               MOVE 12 TO SQL-LEN(2)
+               MOVE 2 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-10
+                                   SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
+           END-IF
+           CALL 'OCSQLEXE' USING SQL-STMT-10
+                               SQLCA
+           MOVE SQL-VAR-0009 TO DB-N-CTACTE
+
+           PERFORM 0291-COMMIT.
+
+       0235-END.
+
 
        0240-UPDATE-CLIENT.
            INITIALIZE CLIENT WS-OPTION.
@@ -966,7 +1045,7 @@
       *        SET  EMAIL_CLIENTE = TRIM(:MAIL)
       *        WHERE ID_CLIENTE =: ID-CLIENTE
       *    END-EXEC
-           IF SQL-PREP OF SQL-STMT-10 = 'N'
+           IF SQL-PREP OF SQL-STMT-11 = 'N'
                SET SQL-ADDR(1) TO ADDRESS OF
                  MAIL
                MOVE 'X' TO SQL-TYPE(1)
@@ -978,13 +1057,13 @@
                MOVE X'00' TO SQL-PREC(2)
                MOVE 2 TO SQL-COUNT
                CALL 'OCSQLPRE' USING SQLV
-                                   SQL-STMT-10
+                                   SQL-STMT-11
                                    SQLCA
                SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
-           CALL 'OCSQLEXE' USING SQL-STMT-10
+           CALL 'OCSQLEXE' USING SQL-STMT-11
                                SQLCA
 
            PERFORM 0291-COMMIT
@@ -995,6 +1074,7 @@
        0251-END.
 
        0260-DETALLE-CLIENTE.
+           INITIALIZE WS-DOCUMENT
            MOVE "Detalle de cliente" TO WS-TXT-TITLE(04:18)
            DISPLAY "+" WS-LINE "+"
            DISPLAY WS-TITLE
@@ -1062,6 +1142,7 @@
            END-IF
 
            IF ACTIVA = 1
+               DISPLAY "[38;5;120mCuenta activa[0m"
                DISPLAY " Cuenta activa"
            ELSE
                DISPLAY " Cuenta dada de baja "
@@ -1179,8 +1260,12 @@
       *  BUFFER                   IN USE CHAR(1024)
       *  CLIENT               NOT IN USE
       *  CREDITO                  IN USE THROUGH TEMP VAR SQL-VAR-0005 DECIMAL(1,0)
+      *  DB-AUX-DOC               IN USE CHAR(12)
+      *  DB-COUNT-CTE         NOT IN USE
       *  DB-DOCUMENT              IN USE CHAR(12)
       *  DB-EXTRA-INFO        NOT IN USE
+      *  DB-EXTRA-INFO.DB-AUX-DOC NOT IN USE
+      *  DB-EXTRA-INFO.DB-COUNT-CTE NOT IN USE
       *  DB-EXTRA-INFO.DB-N-CTACTE NOT IN USE
       *  DB-N-CTACTE              IN USE THROUGH TEMP VAR SQL-VAR-0009 DECIMAL(13,0)
       *  DB-VARS              NOT IN USE
