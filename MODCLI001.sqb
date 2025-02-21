@@ -107,6 +107,7 @@
            STOP RUN.
 
        0100-INICIO.
+
        0110-BD.
       *-----------------------------------------------------------------*
       * CONNECT TO THE DATABASE
@@ -135,6 +136,7 @@
            PERFORM 0291-SQLSTATE-CHECK.
       *-----------------------------------------------------------------*
        0110-END.
+
 
        0111-CABECERA-MODULO.
            DISPLAY "===================================="
@@ -468,6 +470,8 @@
                    EXIT PARAGRAPH
 
            END-EVALUATE.
+
+
        0233-END.
 
        0234-FIND-CTACTE.
@@ -495,7 +499,6 @@
            END-EXEC
 
            PERFORM 0291-COMMIT.
-
        0235-END.
 
 
@@ -744,13 +747,20 @@
                END-IF.
        0291-END.
 
-
        0200-END.
 
        0300-FIN.
            DISPLAY "Regresando a Menu Principal..."
+           PERFORM 0301-DESCONECTAR-BD
            EXIT PROGRAM.
        0300-END.
+
+       0301-DESCONECTAR-BD.
+           EXEC SQL
+                 DISCONNECT ALL
+           END-EXEC
+           DISPLAY "CONEXION FINALIZADA.".
+       0301-END.
 
       *-----------------------------------------------------------------*
       * REVISA SQLSTATE E IMPRIME ERRORES SI EXISTEN

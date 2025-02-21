@@ -1,9 +1,3 @@
-      ******************************************************************
-      * Author: Kevin Cabrera
-      * Date: 14/02/2025
-      * Purpose: Proyecto del curso de COBOL
-      * Tectonics: cobc
-      ******************************************************************
        IDENTIFICATION DIVISION.
       *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
        PROGRAM-ID. MAIN.
@@ -39,7 +33,6 @@
        01  WS-OPTION       PIC 9(01).
        01  WS-OPTION2       PIC 9(01).
 
-
       *-----------------------
        PROCEDURE DIVISION.
       *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
@@ -47,15 +40,16 @@
            PERFORM 0100-INICIO THRU 0200-PROCEDIMIENTO.
            STOP RUN.
 
-           0100-INICIO.
+       0100-INICIO.
            *>DISPLAY "INICIO".
       *    MENU TITLE
            MOVE "MAIN MENU" TO WS-TXT-TITLE(11:9).
            MOVE ":Modulos disponibles:" TO WS-TXT-SUBTITLE.
-           0100-END.
+       0100-END.
 
-           0200-PROCEDIMIENTO.
+       0200-PROCEDIMIENTO.
            INITIALIZE WS-OPTION.
+
            PERFORM 0220-PRINT-MENU.
            DISPLAY "Ingrese una opcion: ".
            ACCEPT WS-OPTION.
@@ -81,10 +75,11 @@
                    CALL 'CIEMEN001' USING WS-OPTION
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 6
-                   DISPLAY "Saliendo del Sistema... Adios..."
+               PERFORM 0300-FIN
+
                WHEN OTHER
                    DISPLAY "Opción invalida, ingrese del 1 al 6".
-                   STOP RUN.
+                   PERFORM 0200-PROCEDIMIENTO.
 
            0220-PRINT-MENU.
            DISPLAY "+" WS-LINE "+".
@@ -101,7 +96,8 @@
            0200-END.
 
            0300-FIN.
-           DISPLAY "FIN".
+               DISPLAY "Saliendo del Sistema... Adios...".
+               STOP RUN.
            0300-END.
 
        END PROGRAM MAIN.

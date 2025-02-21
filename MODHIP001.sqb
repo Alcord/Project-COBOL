@@ -1,0 +1,289 @@
+      ******************************************************************
+      * Author:
+      * Date:
+      * Purpose:
+      * Tectonics: cobc
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. MODHIP.
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+
+       COPY "BD001".
+
+       EXEC SQL
+           BEGIN DECLARE SECTION
+       END-EXEC
+
+       01  SEARCH-APELLI PIC X(10).
+
+       01  DB-VARS.
+           05  DB-DOCUMENT    PIC X(12).
+           05  BUFFER                  PIC X(1024).
+           05  ST-COUNT                PIC 9(6).
+           05  CLIENT.
+               10  ID-CLIENTE                PIC 9(3).
+               10  TIPO-DOC                  PIC X(3).
+               10  DOCUMENT                  PIC X(12).
+               10  NOMBRE                    PIC X(25).
+               10  APELLIDO                  PIC X(25).
+               10  HIPOTECA                  PIC 9(01).
+               10  ACTIVA                    PIC 9(01).
+               10  FECHA-CIERRE              PIC X(10).
+
+       01  DB-EXTRA-INFO.
+           05   DB-N-CTACTE                PIC 9(12).
+           05   DB-COUNT-CTE               PIC 99.
+           05   DB-AUX-DOC                 PIC X(12).
+           05   DB-MAX-ID                   PIC 9(3).
+
+       EXEC SQL
+           END DECLARE SECTION
+       END-EXEC
+
+
+       01 WS-MAINMENU.
+           05 WS-LINE PIC X(30) VALUE ALL "-".
+           05 WS-TITLE.
+               10 WS-LEFT-WALL PIC X(01) VALUE "|".
+               10 WS-TXT-TITLE PIC X(30) VALUE SPACES.
+               10 WS-RGTH-WALL PIC X(01) VALUE "|".
+           05 WS-SUBTITLE.
+             10 WS-SPACE PIC X(05) VALUE SPACES.
+             10 WS-TXT-SUBTITLE PIC X(25) VALUE SPACES.
+           05 WS-MENU.
+            10 WS-TXTMN1 PIC X(30) VALUE "1. Registrar Hipoteca".
+            10 WS-TXTMN2 PIC X(30) VALUE "2. Consultar Deudas".
+            10 WS-TXTMN3 PIC X(30) VALUE "3. Pagar Deudas".
+            10 WS-TXTMN4 PIC X(30) VALUE "4. Salir".
+
+       01 WS-MENU-PAGO.
+           05 WS-PG-OPTION1 PIC X(30) VALUE "1. Pagar 1 o más cuotas".
+           05 WS-PG-OPTION2 PIC X(30) VALUE "2. Pagar totalidad".
+           05 WS-PG-OPTION3 PIC X(30) VALUE "3. Salir".
+
+       01 WS-OPTION PIC 9 VALUE 0.
+
+
+
+       PROCEDURE DIVISION.
+       PERFORM 0100-INICIO THRU 0210-HIPOTECAS.
+       STOP RUN.
+
+       0100-INICIO.
+
+       0110-BD.
+      *-----------------------------------------------------------------*
+      * CONNECT TO THE DATABASE
+      * also possible with DSN: 'youruser/yourpasswd@yourODBC_DSN'
+      *-----------------------------------------------------------------*
+           STRING  'DRIVER={MySQL ODBC 8.0 ANSI Driver};'
+                   'SERVER=',DB-HOST,';'
+                   'PORT=',DB-PORT,';'
+                   'DATABASE=',DB-NAME,';'
+                   'USER=',DB-USER,';'
+                   'PASSWORD=',DB-PASSWORD,';'
+      * example for DB specific ODBC parameter:
+      * no compressed MySQL connection (would be the DEFAULT anyway)
+                   'COMRESSED_PROTO=0;'
+                   INTO BUFFER.
+           EXEC SQL
+               CONNECT TO :BUFFER
+           END-EXEC
+
+           EXEC SQL
+              SELECT DATABASE() INTO :BUFFER
+           END-EXEC
+
+           DISPLAY 'BASE DE DATOS ACTUAL: ' BUFFER.
+
+           PERFORM 0291-SQLSTATE-CHECK.
+      *-----------------------------------------------------------------*
+       0110-END.
+
+
+       0111-CABECERA-MODULO.
+           DISPLAY "===================================="
+           DISPLAY "       SISTEMA DE HIPOTECAS          "
+           DISPLAY "====================================".
+       0111-END.
+
+       0100-END.
+
+       0200-PROCEDIMIENTO.
+
+       0210-HIPOTECAS.
+
+       INITIALIZE WS-OPTION
+       MOVE "Menu Hipotecas" TO WS-TXT-TITLE(05:15)
+       MOVE ":Opciones disponibles:" TO WS-TXT-SUBTITLE
+       PERFORM 0221-PRINT-MENU
+       ACCEPT WS-OPTION
+
+       EVALUATE WS-OPTION
+
+           WHEN 1
+               DISPLAY "Registrar nueva hipoteca"
+               PERFORM 0230-NEW-HIPOTECA
+               PERFORM 0210-HIPOTECAS
+
+           WHEN 2
+               DISPLAY "CONSULTAR HIPOTECA"
+               PERFORM 0240-CONSULT-DEUDA
+               PERFORM 0210-HIPOTECAS
+
+           WHEN 3 DISPLAY "Realizar pago"
+               PERFORM 0250-REALIZA-PAGO
+               PERFORM 0210-HIPOTECAS
+
+           WHEN 4
+               PERFORM 0300-FIN
+
+           WHEN OTHER
+               DISPLAY "(" WS-OPTION ") - " "Opcion invalida."
+               PERFORM 0210-HIPOTECAS
+
+           DISPLAY "Salida incorrecta".
+
+
+       0230-NEW-HIPOTECA.
+           DISPLAY "Registrando Nueva hipoteca....."
+
+           DISPLAY "Inserte el documento del cliente"
+
+           PERFORM 0232-SEARCH-CLIENT
+
+           IF SQLCODE NOT = 0
+               DISPLAY "Cliente no encontrado."
+               PERFORM 0230-NEW-HIPOTECA
+           END-IF
+
+           IF ACTIVA NOT = 1
+               DISPLAY "El usuario esta dado de baja."
+               PERFORM 0230-NEW-HIPOTECA
+           END-IF
+
+           IF HIPOTECA = 1
+               DISPLAY "El usurio ya tiene una hipoteca activa."
+           END-IF
+
+
+           DISPLAY "Ingrese el monto de la hipoteca"
+
+
+           DISPLAY "Inserte el calor aprox. de la garantia"
+
+
+           DISPLAY "Ingrese el numero de cuotas"
+
+
+           DISPLAY "Ingrese el interes para esta hipoteca"
+
+
+
+           PERFORM 0231-CREAR-NUEVA-HIPOTECA
+
+
+
+       0230-END.
+
+       0231-CREAR-NUEVA-HIPOTECA.
+
+           *> calculo de t
+
+       0231-END.
+
+       0232-SEARCH-CLIENT.
+           MOVE WS-DOCUMENT TO DB-DOCUMENT
+
+           EXEC SQL
+           SELECT  C.ID_CLIENTE,
+                   C.DOC_CLIENTE,
+                   C.NOMBRE_CLIENTE,
+                   C.APELLIDOS_CLIENTE,
+                   C.HIPOTECA,
+                   C.CTA_ACTIVA,
+                   C.FECHA_CIERRE
+
+           INTO    :ID-CLIENTE,
+                   :DOCUMENT,
+                   :NOMBRE,
+                   :APELLIDO,
+                   :HIPOTECA,
+                   :ACTIVA,
+                   :FECHA-CIERRE
+
+           FROM banco.clientes C
+           WHERE C.DOC_CLIENTE = TRIM(:DB-DOCUMENT)
+           LIMIT 1
+           END-EXEC.
+
+           PERFORM 0291-SQLSTATE-CHECK.
+       0232-END.
+
+
+       0240-CONSULT-DEUDA.
+       0240-END.
+
+       0250-REALIZA-PAGO.
+           DISPLAY "realizando pago ............".
+       0250-END.
+
+       0221-PRINT-MENU.
+           DISPLAY "+" WS-LINE "+".
+           DISPLAY WS-TITLE.
+           DISPLAY "+" WS-LINE "+".
+           DISPLAY WS-LEFT-WALL WS-SPACE WS-TXT-SUBTITLE WS-RGTH-WALL.
+           DISPLAY WS-LEFT-WALL WS-TXTMN1 WS-RGTH-WALL.
+           DISPLAY WS-LEFT-WALL WS-TXTMN2 WS-RGTH-WALL.
+           DISPLAY WS-LEFT-WALL WS-TXTMN3 WS-RGTH-WALL.
+           DISPLAY WS-LEFT-WALL WS-TXTMN4 WS-RGTH-WALL.
+           DISPLAY "+" WS-LINE "+"
+           DISPLAY "Seleccione una opcion:".
+       0221-END.
+
+       0200-END.
+
+       0291-COMMIT.
+           EXEC SQL
+               COMMIT
+           END-EXEC
+           PERFORM 0291-SQLSTATE-CHECK.
+       0291-END.
+
+       0291-SQLSTATE-CHECK.
+           IF SQLCODE < 0
+               DISPLAY 'SQLSTATE='  SQLSTATE,
+                       ', SQLCODE=' SQLCODE
+               IF SQLERRML > 0
+                   DISPLAY 'SQL Error message:' SQLERRMC(1:SQLERRML)
+               END-IF
+               MOVE SQLCODE TO RETURN-CODE
+           ELSE
+               IF SQLCODE > 0 AND NOT = 100
+                   DISPLAY 'SQLSTATE='  SQLSTATE,
+                           ', SQLCODE=' SQLCODE
+                   IF SQLERRML > 0
+                       DISPLAY 'SQL Warning message:'
+                               SQLERRMC(1:SQLERRML)
+                   END-IF
+               END-IF.
+       0291-END.
+
+       0200-END.
+
+       0300-FIN.
+           DISPLAY "Regresando a Menu Principal..."
+           PERFORM 0301-DESCONECTAR-BD
+           EXIT PROGRAM.
+       0300-END.
+
+       0301-DESCONECTAR-BD.
+           EXEC SQL
+                 DISCONNECT ALL
+           END-EXEC
+           DISPLAY "CONEXION FINALIZADA.".
+       0301-END.
+
+       END PROGRAM MODHIP.
