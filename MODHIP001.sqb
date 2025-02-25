@@ -152,11 +152,6 @@
            DISPLAY "====================================".
        0111-END.
 
-      *>  0112-CREARCURSORES.
-      *>      PERFORM 0246-CURSOR-CUOTAS.
-
-      *>  0112-END.
-
        0100-END.
 
        0200-PROCEDIMIENTO.
@@ -274,7 +269,7 @@
 
            PERFORM 0235-NUM-HIPOTECA
 
-           DISPLAY  MAX-N-HIP
+      *>      DISPLAY  MAX-N-HIP
 
            PERFORM 0231-CREAR-NUEVA-HIPOTECA
 
@@ -285,7 +280,6 @@
        0230-END.
 
        0231-CREAR-NUEVA-HIPOTECA.
-
            INITIALIZE WS-CALCULOS
            MOVE "Pendiente" TO DB-STATUS
 
@@ -491,11 +485,13 @@
            IF SQLCODE NOT = 0
                DISPLAY "Cliente no encontrado."
                PERFORM 0240-CONSULT-DEUDA
+               EXIT PARAGRAPH
            END-IF
 
            IF HIPOTECA = 0
                DISPLAY "El usurio no tiene una hipoteca activa."
                PERFORM 0240-CONSULT-DEUDA
+               EXIT PARAGRAPH
            END-IF
 
            PERFORM 0243-HIPOTECA-RECIENTE
@@ -691,7 +687,7 @@
 
            DISPLAY "------------------------------------"
            DISPLAY "Cuantas cuotas quiere pagar?"
-				      ACCEPT WS-CT-PAY
+                      ACCEPT WS-CT-PAY
            DISPLAY "------------------------------------"
            DISPLAY "Iniciando proceso de pago de cuotas..."
            DISPLAY "Se pagarán " WS-CT-PAY " cuota(s)"
@@ -721,7 +717,7 @@
                ADD 1 TO WS-COUNT
                ADD DB-MONTO-CUOTA TO WS-SUM-PAGO
 
-						 *> Actualizar la cuota a "Pagada"
+                         *> Actualizar la cuota a "Pagada"
                EXEC SQL
                UPDATE banco.cuotas_hipoteca
                SET ESTADO = 'Pagada'

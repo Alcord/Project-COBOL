@@ -25,22 +25,24 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
-           05 SQLVERSN PIC 99 VALUE 02.
-           05 SQLCODE  PIC S9(9) COMP-5.
+           05 SQLVERSN PIC 99 VALUE 03.
+           05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
            05 SQLERRM.
-               49 SQLERRML PIC S9(4) COMP-5.
+               49 SQLERRML PIC S9(4) COMP-5 VALUE ZERO.
                49 SQLERRMC PIC X(486).
-           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5 VALUE ZERO.
+           05 FILLER   PIC X(4).
+           05 SQL-HCONN USAGE POINTER VALUE NULL.
        01 SQLV.
            05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 8.
-           05 SQL-COUNT  PIC S9(9) COMP-5.
-           05 SQL-ADDR   POINTER OCCURS 8 TIMES.
-           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 8 TIMES.
+           05 SQL-COUNT  PIC S9(9) COMP-5 VALUE ZERO.
+           05 SQL-ADDR   POINTER OCCURS 8 TIMES VALUE NULL.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 8 TIMES VALUE ZERO.
            05 SQL-TYPE   PIC X OCCURS 8 TIMES.
            05 SQL-PREC   PIC X OCCURS 8 TIMES.
       **********************************************************************
        01 SQL-STMT-0.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -50,7 +52,7 @@
       -    ' THEN ''S'' ELSE ''N'' END'.
       **********************************************************************
        01 SQL-STMT-1.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -59,7 +61,7 @@
       -    'S WHERE DOC_CLIENTE =TRIM(?) LIMIT 1'.
       **********************************************************************
        01 SQL-STMT-2.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -67,7 +69,7 @@
            05 SQL-STMT   PIC X(16) VALUE 'SELECT CURDATE()'.
       **********************************************************************
        01 SQL-STMT-3.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -76,7 +78,7 @@
       -    'NTO),0) + 1 FROM BANCO.MOVIMIENTOS_TARJETAS'.
       **********************************************************************
        01 SQL-STMT-4.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 6.
@@ -86,18 +88,20 @@
       -    'PO_MOV,MONTO) VALUES (?,?,?,?,?,?)'.
       **********************************************************************
        01 SQL-STMT-5.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-OPT    PIC X VALUE 'C'.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 193.
            05 SQL-STMT   PIC X(193) VALUE 'SELECT ID_CLIENTE,NRO_TARJETA
       -    ',LIMITE_TARJETA - ACUM_MES SALDO_ACTUAL FROM BANCO.TARJETAS 
       -    'WHERE ID_CLIENTE = (SELECT ID_CLIENTE FROM BANCO.CLIENTES WH
       -    'ERE CTA_ACTIVA = 1 AND DOC_CLIENTE =TRIM(?))'.
+           05 SQL-CNAME  PIC X(12) VALUE 'CUR_TARJ-ACT'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
       **********************************************************************
        01 SQL-STMT-6.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -106,7 +110,7 @@
       -    ' ACUM_MES + ? WHERE NRO_TARJETA =TRIM(?)'.
       **********************************************************************
        01 SQL-STMT-7.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -115,7 +119,7 @@
       -    ' ACUM_MES - ? WHERE NRO_TARJETA =TRIM(?)'.
       **********************************************************************
        01 SQL-STMT-8.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -126,7 +130,7 @@
       -    'M(?)'.
       **********************************************************************
        01 SQL-STMT-9.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -137,7 +141,7 @@
       -    ' THEN ''S'' ELSE ''N'' END'.
       **********************************************************************
        01 SQL-STMT-10.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -146,7 +150,7 @@
       -    'FROM DUAL'.
       **********************************************************************
        01 SQL-STMT-11.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -155,7 +159,7 @@
       -    'LIENTES WHERE DOC_CLIENTE =TRIM(?) LIMIT 1'.
       **********************************************************************
        01 SQL-STMT-12.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 4.
@@ -165,9 +169,9 @@
       -    'OM DUAL),?,0,?)'.
       **********************************************************************
        01 SQL-STMT-13.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-OPT    PIC X VALUE 'C'.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 329.
            05 SQL-STMT   PIC X(329) VALUE 'SELECT ID_CLIENTE,NRO_TARJETA
@@ -177,11 +181,13 @@
       -    ' WHERE ID_CLIENTE = (SELECT ID_CLIENTE FROM BANCO.CLIENTES W
       -    'HERE CTA_ACTIVA = 1 AND DOC_CLIENTE =TRIM(?)) ORDER BY FECHA
       -    '_MOV ASC'.
+           05 SQL-CNAME  PIC X(16) VALUE 'CURSOR_DEUDA-DET'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
       **********************************************************************
        01 SQL-STMT-14.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-OPT    PIC X VALUE 'C'.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 697.
            05 SQL-STMT   PIC X(697) VALUE 'SELECT D.ID_CLIENTE,D.NRO_TAR
@@ -197,9 +203,11 @@
       -    'CLIENTE = PAGO.ID_CLIENTE WHERE D.ID_CLIENTE = (SELECT ID_CL
       -    'IENTE FROM BANCO.CLIENTES WHERE CTA_ACTIVA = 1 AND DOC_CLIEN
       -    'TE =TRIM(?))'.
+           05 SQL-CNAME  PIC X(12) VALUE 'CURSOR_DEUDA'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
       **********************************************************************
        01 SQL-STMT-15.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -208,16 +216,17 @@
       -    ' FROM DUAL;'.
       **********************************************************************
        01 SQL-STMT-16.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 80.
-           05 SQL-STMT   PIC X(80) VALUE 'SELECT IFNULL((SELECT ''S'' FR
-      -    'OM CLIENTES WHERE DOC_CLIENTE =TRIM(?) LIMIT 1),''N'')'.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 99.
+           05 SQL-STMT   PIC X(99) VALUE 'SELECT IFNULL((SELECT ''S'' FR
+      -    'OM CLIENTES WHERE DOC_CLIENTE =TRIM(?) AND CTA_ACTIVA = 1 LI
+      -    'MIT 1),''N'')'.
       **********************************************************************
        01 SQL-STMT-17.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -576,6 +585,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-0
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-0
                                SQLCA
@@ -639,6 +649,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-1
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-1
                                SQLCA
@@ -659,6 +670,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-2
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-2
                                SQLCA
@@ -681,6 +693,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-3
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-3
                                SQLCA
@@ -738,6 +751,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-4
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE WT-ID-MOVIMIENTO
              TO SQL-VAR-0008
@@ -882,6 +896,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-6
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE WT-MONTO-TARJ
              TO SQL-VAR-0009
@@ -910,6 +925,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-7
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE WT-MONTO-TARJ
              TO SQL-VAR-0009
@@ -939,6 +955,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-8
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-8
                                SQLCA
@@ -996,6 +1013,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-9
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-9
                                SQLCA
@@ -1019,6 +1037,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-10
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-10
                                SQLCA
@@ -1048,6 +1067,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-11
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-11
                                SQLCA
@@ -1090,6 +1110,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-12
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE WTT-ID-CLIENTE
              TO SQL-VAR-0003
@@ -1430,6 +1451,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-15
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE WT-MONTO TO SQL-VAR-0006
            CALL 'OCSQLEXE' USING SQL-STMT-15
@@ -1446,7 +1468,9 @@
       *    EXEC SQL
       *    SELECT
       *     IFNULL((SELECT 'S' FROM CLIENTES WHERE
-      *                   DOC_CLIENTE =TRIM(:WT-DOC-CLI) LIMIT 1), 'N')
+      *                   DOC_CLIENTE =TRIM(:WT-DOC-CLI)
+      *                   AND CTA_ACTIVA = 1
+      *                   LIMIT 1), 'N')
       *       INTO :WS-EXISTE-CLIENTE
       *       FROM DUAL
       *    END-EXEC.
@@ -1463,6 +1487,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-16
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-16
                                SQLCA
@@ -1505,6 +1530,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-17
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-17
                                SQLCA
@@ -1538,7 +1564,7 @@
            DISPLAY "Regresando a Menu Principal..."
            EXIT PROGRAM.
       **********************************************************************
-      *  : ESQL for GnuCOBOL/OpenCobol Version 2 (2021.05.29) Build May 29 2021
+      *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
 
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  BUFFER                   IN USE CHAR(1024)

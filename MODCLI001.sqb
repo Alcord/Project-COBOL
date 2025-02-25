@@ -1,9 +1,3 @@
-      ******************************************************************
-      * Author:
-      * Date:
-      * Purpose:
-      * Tectonics: cobc
-      ******************************************************************
        IDENTIFICATION DIVISION.
        PROGRAM-ID. MODCLI001.
        DATA DIVISION.
@@ -45,6 +39,8 @@
            05   DB-COUNT-CTE               PIC 99.
            05   DB-AUX-DOC                 PIC X(12).
            05   DB-N-CTES                  PIC 9(6).
+
+       01  DB-FECHA-HOY       PIC X(10).
 
            EXEC SQL
                END DECLARE SECTION
@@ -95,6 +91,16 @@
        01  WS-OPTION                            PIC 9 VALUE 0.
        01  WS-OPTION-TD                         PIC 9 VALUE 0.
        01  WS-SALDO-PRNT                        PIC Z(12).99.
+       01  WS-CONFIRMATION                      PIC X.
+
+      *>   Varaibles para la fecha actual
+       01  WS-FECHA-8 PIC 9(8). *> Para almacenar 8 de CURRENT-DATE
+       01  WS-FECHA-HOY.
+           05 YYYY PIC X(04).
+           05 SEP1 PIC X VALUE "-".
+           05 MM   PIC XX.
+           05 SEP2 PIC X VALUE "-".
+           05 DD   PIC XX.
 
        01  WS-VALIDATIONS.
            05 WS-DOCUMENT-VAL   PIC 9  VALUE 0.
@@ -230,13 +236,11 @@
             WHEN 2
                 MOVE "PAS" TO WS-TIPO-DOC
             WHEN 3
-                DISPLAY "Se cancela el registro nuevo..."
+                DISPLAY "Se cancela el registro nuevo..."
                 EXIT PARAGRAPH
             WHEN OTHER
                 DISPLAY "Opción no válida."
            END-EVALUATE
-
-
 
            DISPLAY "Inserte el documento: "
            ACCEPT WS-DOCUMENT
@@ -249,7 +253,7 @@
            PERFORM 0235-CTE-EXIST
 
            IF DB-N-CTES > 0
-               DISPLAY "Documento ya registrado en el sistema..."
+               DISPLAY "Documento ya registrado en el sistema..."
                PERFORM 0230-NEW-CLIENT
            END-IF
 
@@ -277,8 +281,6 @@
       *>      END-IF
 
            *> WS-MAX-ID Indice para el siguiente registro
-
-
 
            EXEC SQL
                SELECT MAX(ID_CLIENTE) + 1
@@ -323,13 +325,15 @@
                     :TARJETA,
                     :CREDITO,
                     :HIPOTECA,
-                    :ACTIVA,
+                    1,
                     null,
                     :SALDO
                     )
            END-EXEC
 
-           PERFORM 0291-COMMIT.
+           PERFORM 0291-COMMIT
+
+           PERFORM 0291-SQLSTATE-CHECK.
        0231-END.
 
 
@@ -478,7 +482,7 @@
                    END-IF
 
                 WHEN 6
-                   DISPLAY "Regresando..."
+                   DISPLAY "Regresando..."
                    EXIT PARAGRAPH
 
            END-EVALUATE.
@@ -526,7 +530,7 @@
            DISPLAY "Documento ingresado:" WS-DOCUMENT "$"
 
            IF WS-DOCUMENT = "-1"
-               DISPLAY "Regresando a Menu Clientes..."
+               DISPLAY "Regresando a Menu Clientes..."
                EXIT PARAGRAPH
            END-IF
 
@@ -558,7 +562,7 @@
            ACCEPT WS-DOCUMENT
 
            IF WS-DOCUMENT = "-1"
-               DISPLAY "Regresando a Menu Clientes..."
+               DISPLAY "Regresando a Menu Clientes..."
                EXIT PARAGRAPH
            END-IF
 
@@ -571,7 +575,22 @@
 
            IF TARJETA = 0  AND CREDITO = 0 AND HIPOTECA = 0
                AND ACTIVA = 1 AND SALDO = 0
-               PERFORM 0251-UPDATE-BAJA
+
+               DISPLAY "........................................"
+               DISPLAY "Esta seguro de dar de baja al cliente?"
+               DISPLAY FUNCTION TRIM(APELLIDO)" "FUNCTION TRIM(NOMBRE)
+               DISPLAY "Inserte (S) para confirmar"
+               DISPLAY "........................................"
+               ACCEPT WS-CONFIRMATION
+
+               EVALUATE WS-CONFIRMATION
+                   WHEN "S"
+                       PERFORM 0251-UPDATE-BAJA
+                   WHEN OTHER
+                       DISPLAY "Se ha cancelado la baja"
+                       EXIT PARAGRAPH
+               END-EVALUATE
+
            ELSE
                PERFORM 0243-ERROR-UPDATE
                PERFORM 0250-BAJA-CLIENTE
@@ -579,10 +598,14 @@
        0250-END.
 
        0251-UPDATE-BAJA.
+
+           PERFORM 0252-FECHA-HOY
+
            EXEC SQL
                UPDATE CLIENTES
-               SET  EMAIL_CLIENTE = TRIM(:MAIL)
-               WHERE ID_CLIENTE =: ID-CLIENTE
+               SET  CTA_ACTIVA = 0,
+                    FECHA_CIERRE = :DB-FECHA-HOY
+               WHERE ID_CLIENTE = :ID-CLIENTE
            END-EXEC
 
            PERFORM 0291-COMMIT
@@ -591,6 +614,17 @@
                DISPLAY "Se ha dado de baja al cliente"
            END-IF.
        0251-END.
+
+       0252-FECHA-HOY.
+           INITIALIZE WS-FECHA-8 YYYY MM DD
+           MOVE FUNCTION CURRENT-DATE (1:8) TO WS-FECHA-8
+           MOVE WS-FECHA-8 (1:4) TO YYYY
+           MOVE WS-FECHA-8 (5:2) TO MM
+           MOVE WS-FECHA-8 (7:2) TO DD
+
+           MOVE WS-FECHA-HOY TO DB-FECHA-HOY.
+      *>      DISPLAY 'Fecha actual: ' WS-FECHA-HOY.
+       0252-END.
 
        0260-DETALLE-CLIENTE.
            INITIALIZE WS-DOCUMENT
@@ -604,7 +638,7 @@
            ACCEPT WS-DOCUMENT
 
            IF WS-DOCUMENT = "-1"
-               DISPLAY "Regresando a Menu Clientes..."
+               DISPLAY "Regresando a Menu Clientes..."
                EXIT PARAGRAPH
            END-IF
 

@@ -15,22 +15,24 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
-           05 SQLVERSN PIC 99 VALUE 02.
-           05 SQLCODE  PIC S9(9) COMP-5.
+           05 SQLVERSN PIC 99 VALUE 03.
+           05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
            05 SQLERRM.
-               49 SQLERRML PIC S9(4) COMP-5.
+               49 SQLERRML PIC S9(4) COMP-5 VALUE ZERO.
                49 SQLERRMC PIC X(486).
-           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5 VALUE ZERO.
+           05 FILLER   PIC X(4).
+           05 SQL-HCONN USAGE POINTER VALUE NULL.
        01 SQLV.
            05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 9.
-           05 SQL-COUNT  PIC S9(9) COMP-5.
-           05 SQL-ADDR   POINTER OCCURS 9 TIMES.
-           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 9 TIMES.
+           05 SQL-COUNT  PIC S9(9) COMP-5 VALUE ZERO.
+           05 SQL-ADDR   POINTER OCCURS 9 TIMES VALUE NULL.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 9 TIMES VALUE ZERO.
            05 SQL-TYPE   PIC X OCCURS 9 TIMES.
            05 SQL-PREC   PIC X OCCURS 9 TIMES.
       **********************************************************************
        01 SQL-STMT-0.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -38,7 +40,7 @@
            05 SQL-STMT   PIC X(17) VALUE 'SELECT DATABASE()'.
       **********************************************************************
        01 SQL-STMT-1.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 6.
@@ -48,7 +50,7 @@
       -    'UES (?,?,?,?,TRIM(?),?)'.
       **********************************************************************
        01 SQL-STMT-2.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -59,7 +61,7 @@
       -    'TE = TRIM(?) LIMIT 1'.
       **********************************************************************
        01 SQL-STMT-3.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -68,7 +70,7 @@
       -    ' banco.hipotecas H'.
       **********************************************************************
        01 SQL-STMT-4.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -77,7 +79,7 @@
       -    ' 1 WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-5.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 8.
@@ -88,17 +90,19 @@
       -    ',?,?,TRIM(?))'.
       **********************************************************************
        01 SQL-STMT-6.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-OPT    PIC X VALUE 'C'.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 124.
            05 SQL-STMT   PIC X(124) VALUE 'SELECT N_CUOTA,FECHA,ESTADO,M
       -    'ONTO_CUOTA FROM banco.cuotas_hipoteca WHERE ID_HIPOTECA = ? 
       -    'AND ID_CLIENTE = ? ORDER BY N_CUOTA'.
+           05 SQL-CNAME  PIC X(8) VALUE 'C_CUOTAS'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
       **********************************************************************
        01 SQL-STMT-7.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -109,7 +113,7 @@
       -    ' ?'.
       **********************************************************************
        01 SQL-STMT-8.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -119,17 +123,19 @@
       -    ''.
       **********************************************************************
        01 SQL-STMT-9.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-OPT    PIC X VALUE 'C'.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 136.
            05 SQL-STMT   PIC X(136) VALUE 'SELECT N_CUOTA,MONTO_CUOTA FR
       -    'OM banco.cuotas_hipoteca WHERE ID_HIPOTECA = ? AND ID_CLIENT
       -    'E = ? AND ESTADO = ''Pendiente'' ORDER BY N_CUOTA'.
+           05 SQL-CNAME  PIC X(12) VALUE 'C_CUOTAS_PAY'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
       **********************************************************************
        01 SQL-STMT-10.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 3.
@@ -139,7 +145,7 @@
       -    ' = ? AND N_CUOTA = ?'.
       **********************************************************************
        01 SQL-STMT-11.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 3.
@@ -149,7 +155,7 @@
       -    'IENTE = ?'.
       **********************************************************************
        01 SQL-STMT-12.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -159,7 +165,7 @@
       -    '= ?'.
       **********************************************************************
        01 SQL-STMT-13.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -336,6 +342,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-0
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-0
                                SQLCA
@@ -352,11 +359,6 @@
            DISPLAY "       SISTEMA DE HIPOTECAS          "
            DISPLAY "====================================".
        0111-END.
-
-      *>  0112-CREARCURSORES.
-      *>      PERFORM 0246-CURSOR-CUOTAS.
-
-      *>  0112-END.
 
        0100-END.
 
@@ -475,7 +477,7 @@
 
            PERFORM 0235-NUM-HIPOTECA
 
-           DISPLAY  MAX-N-HIP
+      *>      DISPLAY  MAX-N-HIP
 
            PERFORM 0231-CREAR-NUEVA-HIPOTECA
 
@@ -486,7 +488,6 @@
        0230-END.
 
        0231-CREAR-NUEVA-HIPOTECA.
-
            INITIALIZE WS-CALCULOS
            MOVE "Pendiente" TO DB-STATUS
 
@@ -563,6 +564,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-1
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0002
@@ -650,6 +652,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-2
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-2
                                SQLCA
@@ -724,6 +727,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-3
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-3
                                SQLCA
@@ -753,6 +757,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-4
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0002
@@ -828,6 +833,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-5
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE MAX-N-HIP
              TO SQL-VAR-0005
@@ -866,11 +872,13 @@
            IF SQLCODE NOT = 0
                DISPLAY "Cliente no encontrado."
                PERFORM 0240-CONSULT-DEUDA
+               EXIT PARAGRAPH
            END-IF
 
            IF HIPOTECA = 0
                DISPLAY "El usurio no tiene una hipoteca activa."
                PERFORM 0240-CONSULT-DEUDA
+               EXIT PARAGRAPH
            END-IF
 
            PERFORM 0243-HIPOTECA-RECIENTE
@@ -1045,6 +1053,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-7
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE MAX-N-HIP TO SQL-VAR-0005
            CALL 'OCSQLEXE' USING SQL-STMT-7
@@ -1092,6 +1101,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-8
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE TO SQL-VAR-0002
            CALL 'OCSQLEXE' USING SQL-STMT-8
@@ -1193,7 +1203,7 @@
 
            DISPLAY "------------------------------------"
            DISPLAY "Cuantas cuotas quiere pagar?"
-				      ACCEPT WS-CT-PAY
+                      ACCEPT WS-CT-PAY
            DISPLAY "------------------------------------"
            DISPLAY "Iniciando proceso de pago de cuotas..."
            DISPLAY "Se pagarán " WS-CT-PAY " cuota(s)"
@@ -1260,7 +1270,7 @@
                ADD 1 TO WS-COUNT
                ADD DB-MONTO-CUOTA TO WS-SUM-PAGO
 
-						 *> Actualizar la cuota a "Pagada"
+                         *> Actualizar la cuota a "Pagada"
       *        EXEC SQL
       *        UPDATE banco.cuotas_hipoteca
       *        SET ESTADO = 'Pagada'
@@ -1288,6 +1298,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-10
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE DB-ID-HIPOTECA
              TO SQL-VAR-0009
@@ -1335,6 +1346,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-11
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE DB-SUM-PAGO
              TO SQL-VAR-0016
@@ -1378,6 +1390,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-12
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE DB-ID-HIPOTECA
              TO SQL-VAR-0009
@@ -1409,6 +1422,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-13
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE DB-ID-HIPOTECA
              TO SQL-VAR-0009
@@ -1481,7 +1495,7 @@
 
        END PROGRAM MODHIP001.
       **********************************************************************
-      *  : ESQL for GnuCOBOL/OpenCobol Version 2 (2021.05.29) Build May 29 2021
+      *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
 
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  ACTIVA                   IN USE THROUGH TEMP VAR SQL-VAR-0004 DECIMAL(1,0)

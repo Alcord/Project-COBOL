@@ -4,7 +4,7 @@ CREATE TABLE banco.movimientos_tarjetas (
   NRO_TARJETA char(16) DEFAULT NULL,
   FECHA_MOV date DEFAULT NULL,
   TIPO_MOV char(1) DEFAULT NULL,
-  MONTO decimal(12,2) DEFAULT 0
+  MONTO decimal(12,2) DEFAULT 0
 );
 
 
@@ -26,4 +26,4 @@ CREATE TABLE banco.movimientos_ctactes (
   TIP_MOV char(1),
   IMPORTE_MOV decimal(12,2) DEFAULT NULL,
   SALDO_ACTUAL decimal(12,2) DEFAULT NULL
-) 
+)

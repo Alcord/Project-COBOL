@@ -1,9 +1,3 @@
-      ******************************************************************
-      * Author:
-      * Date:
-      * Purpose:
-      * Tectonics: cobc
-      ******************************************************************
        IDENTIFICATION DIVISION.
        PROGRAM-ID. MODCLI001.
        DATA DIVISION.
@@ -21,22 +15,24 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
-           05 SQLVERSN PIC 99 VALUE 02.
-           05 SQLCODE  PIC S9(9) COMP-5.
+           05 SQLVERSN PIC 99 VALUE 03.
+           05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
            05 SQLERRM.
-               49 SQLERRML PIC S9(4) COMP-5.
+               49 SQLERRML PIC S9(4) COMP-5 VALUE ZERO.
                49 SQLERRMC PIC X(486).
-           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5 VALUE ZERO.
+           05 FILLER   PIC X(4).
+           05 SQL-HCONN USAGE POINTER VALUE NULL.
        01 SQLV.
            05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 14.
-           05 SQL-COUNT  PIC S9(9) COMP-5.
-           05 SQL-ADDR   POINTER OCCURS 14 TIMES.
-           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 14 TIMES.
+           05 SQL-COUNT  PIC S9(9) COMP-5 VALUE ZERO.
+           05 SQL-ADDR   POINTER OCCURS 14 TIMES VALUE NULL.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 14 TIMES VALUE ZERO.
            05 SQL-TYPE   PIC X OCCURS 14 TIMES.
            05 SQL-PREC   PIC X OCCURS 14 TIMES.
       **********************************************************************
        01 SQL-STMT-0.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -44,7 +40,7 @@
            05 SQL-STMT   PIC X(17) VALUE 'SELECT DATABASE()'.
       **********************************************************************
        01 SQL-STMT-1.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -53,16 +49,16 @@
       -    'M clientes'.
       **********************************************************************
        01 SQL-STMT-2.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
-           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 13.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 12.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 78.
            05 SQL-STMT   PIC X(78) VALUE 'INSERT INTO clientes VALUES(?,
-      -    '?,TRIM(?),CURRENT_DATE,?,?,?,?,?,?,?,?,?,null,?)'.
+      -    '?,TRIM(?),CURRENT_DATE,?,?,?,?,?,?,?,?,1,null,?)'.
       **********************************************************************
        01 SQL-STMT-3.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -74,7 +70,7 @@
       -    'clientes C WHERE C.DOC_CLIENTE = TRIM(?) LIMIT 1'.
       **********************************************************************
        01 SQL-STMT-4.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -83,7 +79,7 @@
       -    'ENTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-5.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -92,7 +88,7 @@
       -    'CLIENTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-6.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -101,7 +97,7 @@
       -    'CLIENTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-7.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -110,7 +106,7 @@
       -    'NTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-8.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -119,7 +115,7 @@
       -    'NTE = TRIM(?) WHERE ID_CLIENTE =?'.
       **********************************************************************
        01 SQL-STMT-9.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -128,7 +124,7 @@
       -    'tactes WHERE ID_CLIENTE = ID-CLIENTE'.
       **********************************************************************
        01 SQL-STMT-10.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -137,13 +133,13 @@
       -    'entes WHERE DOC_CLIENTE = TRIM(?)'.
       **********************************************************************
        01 SQL-STMT-11.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 63.
-           05 SQL-STMT   PIC X(63) VALUE 'UPDATE CLIENTES SET EMAIL_CLIE
-      -    'NTE = TRIM(?) WHERE ID_CLIENTE =?'.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 72.
+           05 SQL-STMT   PIC X(72) VALUE 'UPDATE CLIENTES SET CTA_ACTIVA
+      -    ' = 0,FECHA_CIERRE = ? WHERE ID_CLIENTE = ?'.
       **********************************************************************
       *******          PRECOMPILER-GENERATED VARIABLES               *******
        01 SQLV-GEN-VARS.
@@ -195,6 +191,8 @@
            05   DB-AUX-DOC                 PIC X(12).
            05   DB-N-CTES                  PIC 9(6).
 
+       01  DB-FECHA-HOY       PIC X(10).
+
       *    EXEC SQL
       *        END DECLARE SECTION
       *    END-EXEC
@@ -244,6 +242,16 @@
        01  WS-OPTION                            PIC 9 VALUE 0.
        01  WS-OPTION-TD                         PIC 9 VALUE 0.
        01  WS-SALDO-PRNT                        PIC Z(12).99.
+       01  WS-CONFIRMATION                      PIC X.
+
+      *>   Varaibles para la fecha actual
+       01  WS-FECHA-8 PIC 9(8). *> Para almacenar 8 de CURRENT-DATE
+       01  WS-FECHA-HOY.
+           05 YYYY PIC X(04).
+           05 SEP1 PIC X VALUE "-".
+           05 MM   PIC XX.
+           05 SEP2 PIC X VALUE "-".
+           05 DD   PIC XX.
 
        01  WS-VALIDATIONS.
            05 WS-DOCUMENT-VAL   PIC 9  VALUE 0.
@@ -294,6 +302,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-0
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-0
                                SQLCA
@@ -396,13 +405,11 @@
             WHEN 2
                 MOVE "PAS" TO WS-TIPO-DOC
             WHEN 3
-                DISPLAY "Se cancela el registro nuevo..."
+                DISPLAY "Se cancela el registro nuevo..."
                 EXIT PARAGRAPH
             WHEN OTHER
                 DISPLAY "Opción no válida."
            END-EVALUATE
-
-
 
            DISPLAY "Inserte el documento: "
            ACCEPT WS-DOCUMENT
@@ -415,7 +422,7 @@
            PERFORM 0235-CTE-EXIST
 
            IF DB-N-CTES > 0
-               DISPLAY "Documento ya registrado en el sistema..."
+               DISPLAY "Documento ya registrado en el sistema..."
                PERFORM 0230-NEW-CLIENT
            END-IF
 
@@ -444,8 +451,6 @@
 
            *> WS-MAX-ID Indice para el siguiente registro
 
-
-
       *    EXEC SQL
       *        SELECT MAX(ID_CLIENTE) + 1
       *        INTO :WS-MAX-ID
@@ -461,6 +466,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-1
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-1
                                SQLCA
@@ -503,7 +509,7 @@
       *             :TARJETA,
       *             :CREDITO,
       *             :HIPOTECA,
-      *             :ACTIVA,
+      *             1,
       *             null,
       *             :SALDO
       *             )
@@ -558,19 +564,15 @@
                MOVE 1 TO SQL-LEN(11)
                MOVE X'00' TO SQL-PREC(11)
                SET SQL-ADDR(12) TO ADDRESS OF
-                 SQL-VAR-0007
-               MOVE '3' TO SQL-TYPE(12)
-               MOVE 1 TO SQL-LEN(12)
-               MOVE X'00' TO SQL-PREC(12)
-               SET SQL-ADDR(13) TO ADDRESS OF
                  SQL-VAR-0008
-               MOVE '3' TO SQL-TYPE(13)
-               MOVE 8 TO SQL-LEN(13)
-               MOVE X'02' TO SQL-PREC(13)
-               MOVE 13 TO SQL-COUNT
+               MOVE '3' TO SQL-TYPE(12)
+               MOVE 8 TO SQL-LEN(12)
+               MOVE X'02' TO SQL-PREC(12)
+               MOVE 12 TO SQL-COUNT
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-2
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -580,14 +582,14 @@
              TO SQL-VAR-0005
            MOVE HIPOTECA
              TO SQL-VAR-0006
-           MOVE ACTIVA
-             TO SQL-VAR-0007
            MOVE SALDO
              TO SQL-VAR-0008
            CALL 'OCSQLEXE' USING SQL-STMT-2
                                SQLCA
 
-           PERFORM 0291-COMMIT.
+           PERFORM 0291-COMMIT
+
+           PERFORM 0291-SQLSTATE-CHECK.
        0231-END.
 
 
@@ -694,6 +696,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-3
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-3
                                SQLCA
@@ -737,6 +740,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-4
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -776,6 +780,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-5
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -815,6 +820,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-6
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -854,6 +860,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-7
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -893,6 +900,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-8
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -908,7 +916,7 @@
                    END-IF
 
                 WHEN 6
-                   DISPLAY "Regresando..."
+                   DISPLAY "Regresando..."
                    EXIT PARAGRAPH
 
            END-EVALUATE.
@@ -934,6 +942,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-9
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-9
                                SQLCA
@@ -964,6 +973,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-10
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-10
                                SQLCA
@@ -989,7 +999,7 @@
            DISPLAY "Documento ingresado:" WS-DOCUMENT "$"
 
            IF WS-DOCUMENT = "-1"
-               DISPLAY "Regresando a Menu Clientes..."
+               DISPLAY "Regresando a Menu Clientes..."
                EXIT PARAGRAPH
            END-IF
 
@@ -1021,7 +1031,7 @@
            ACCEPT WS-DOCUMENT
 
            IF WS-DOCUMENT = "-1"
-               DISPLAY "Regresando a Menu Clientes..."
+               DISPLAY "Regresando a Menu Clientes..."
                EXIT PARAGRAPH
            END-IF
 
@@ -1034,7 +1044,22 @@
 
            IF TARJETA = 0  AND CREDITO = 0 AND HIPOTECA = 0
                AND ACTIVA = 1 AND SALDO = 0
-               PERFORM 0251-UPDATE-BAJA
+
+               DISPLAY "........................................"
+               DISPLAY "Esta seguro de dar de baja al cliente?"
+               DISPLAY FUNCTION TRIM(APELLIDO)" "FUNCTION TRIM(NOMBRE)
+               DISPLAY "Inserte (S) para confirmar"
+               DISPLAY "........................................"
+               ACCEPT WS-CONFIRMATION
+
+               EVALUATE WS-CONFIRMATION
+                   WHEN "S"
+                       PERFORM 0251-UPDATE-BAJA
+                   WHEN OTHER
+                       DISPLAY "Se ha cancelado la baja"
+                       EXIT PARAGRAPH
+               END-EVALUATE
+
            ELSE
                PERFORM 0243-ERROR-UPDATE
                PERFORM 0250-BAJA-CLIENTE
@@ -1042,16 +1067,20 @@
        0250-END.
 
        0251-UPDATE-BAJA.
+
+           PERFORM 0252-FECHA-HOY
+
       *    EXEC SQL
       *        UPDATE CLIENTES
-      *        SET  EMAIL_CLIENTE = TRIM(:MAIL)
-      *        WHERE ID_CLIENTE =: ID-CLIENTE
+      *        SET  CTA_ACTIVA = 0,
+      *             FECHA_CIERRE = :DB-FECHA-HOY
+      *        WHERE ID_CLIENTE = :ID-CLIENTE
       *    END-EXEC
            IF SQL-PREP OF SQL-STMT-11 = 'N'
                SET SQL-ADDR(1) TO ADDRESS OF
-                 MAIL
+                 DB-FECHA-HOY
                MOVE 'X' TO SQL-TYPE(1)
-               MOVE 40 TO SQL-LEN(1)
+               MOVE 10 TO SQL-LEN(1)
                SET SQL-ADDR(2) TO ADDRESS OF
                  SQL-VAR-0003
                MOVE '3' TO SQL-TYPE(2)
@@ -1061,6 +1090,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-11
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE ID-CLIENTE
              TO SQL-VAR-0003
@@ -1074,6 +1104,17 @@
            END-IF.
        0251-END.
 
+       0252-FECHA-HOY.
+           INITIALIZE WS-FECHA-8 YYYY MM DD
+           MOVE FUNCTION CURRENT-DATE (1:8) TO WS-FECHA-8
+           MOVE WS-FECHA-8 (1:4) TO YYYY
+           MOVE WS-FECHA-8 (5:2) TO MM
+           MOVE WS-FECHA-8 (7:2) TO DD
+
+           MOVE WS-FECHA-HOY TO DB-FECHA-HOY.
+      *>      DISPLAY 'Fecha actual: ' WS-FECHA-HOY.
+       0252-END.
+
        0260-DETALLE-CLIENTE.
            INITIALIZE WS-DOCUMENT
            MOVE "Detalle de cliente" TO WS-TXT-TITLE(04:18)
@@ -1086,7 +1127,7 @@
            ACCEPT WS-DOCUMENT
 
            IF WS-DOCUMENT = "-1"
-               DISPLAY "Regresando a Menu Clientes..."
+               DISPLAY "Regresando a Menu Clientes..."
                EXIT PARAGRAPH
            END-IF
 
@@ -1263,7 +1304,7 @@
 
        END PROGRAM MODCLI001.
       **********************************************************************
-      *  : ESQL for GnuCOBOL/OpenCobol Version 2 (2021.05.29) Build May 29 2021
+      *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
 
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  ACTIVA                   IN USE THROUGH TEMP VAR SQL-VAR-0007 DECIMAL(1,0)
@@ -1279,6 +1320,7 @@
       *  DB-EXTRA-INFO.DB-COUNT-CTE NOT IN USE
       *  DB-EXTRA-INFO.DB-N-CTACTE NOT IN USE
       *  DB-EXTRA-INFO.DB-N-CTES NOT IN USE
+      *  DB-FECHA-HOY             IN USE CHAR(10)
       *  DB-N-CTACTE              IN USE THROUGH TEMP VAR SQL-VAR-0009 DECIMAL(13,0)
       *  DB-N-CTES                IN USE THROUGH TEMP VAR SQL-VAR-0011 DECIMAL(7,0)
       *  DB-VARS              NOT IN USE

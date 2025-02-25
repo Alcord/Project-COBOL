@@ -332,7 +332,9 @@
            EXEC SQL
            SELECT
             IFNULL((SELECT 'S' FROM CLIENTES WHERE
-                          DOC_CLIENTE =TRIM(:WT-DOC-CLI) LIMIT 1), 'N')
+                          DOC_CLIENTE =TRIM(:WT-DOC-CLI)
+                          AND CTA_ACTIVA = 1
+                          LIMIT 1), 'N')
               INTO :WS-EXISTE-CLIENTE
               FROM DUAL
            END-EXEC.

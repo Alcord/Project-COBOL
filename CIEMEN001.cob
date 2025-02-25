@@ -24,24 +24,26 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
-           05 SQLVERSN PIC 99 VALUE 02.
-           05 SQLCODE  PIC S9(9) COMP-5.
+           05 SQLVERSN PIC 99 VALUE 03.
+           05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
            05 SQLERRM.
-               49 SQLERRML PIC S9(4) COMP-5.
+               49 SQLERRML PIC S9(4) COMP-5 VALUE ZERO.
                49 SQLERRMC PIC X(486).
-           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5 VALUE ZERO.
+           05 FILLER   PIC X(4).
+           05 SQL-HCONN USAGE POINTER VALUE NULL.
        01 SQLV.
            05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 5.
-           05 SQL-COUNT  PIC S9(9) COMP-5.
-           05 SQL-ADDR   POINTER OCCURS 5 TIMES.
-           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 5 TIMES.
+           05 SQL-COUNT  PIC S9(9) COMP-5 VALUE ZERO.
+           05 SQL-ADDR   POINTER OCCURS 5 TIMES VALUE NULL.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 5 TIMES VALUE ZERO.
            05 SQL-TYPE   PIC X OCCURS 5 TIMES.
            05 SQL-PREC   PIC X OCCURS 5 TIMES.
       **********************************************************************
        01 SQL-STMT-0.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-OPT    PIC X VALUE 'C'.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
            05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 455.
            05 SQL-STMT   PIC X(455) VALUE 'SELECT C.ID_CLIENTE,C.NOMBRE_
@@ -53,9 +55,11 @@
       -    'IENTE = CT.ID_CLIENTE LEFT JOIN HIPOTECAS H ON C.ID_CLIENTE 
       -    '= H.ID_CLIENTE LEFT JOIN TARJETAS T ON C.ID_CLIENTE = T.ID_C
       -    'LIENTE'.
+           05 SQL-CNAME  PIC X(18) VALUE 'CURSOR_CONSOLIDADO'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
       **********************************************************************
        01 SQL-STMT-1.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -64,7 +68,7 @@
       -    'RDATE()),''%d/%m/%Y'') FROM DUAL'.
       **********************************************************************
        01 SQL-STMT-2.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -73,7 +77,7 @@
       -    'CURDATE())),'' '',YEAR(CURDATE())) FROM DUAL'.
       **********************************************************************
        01 SQL-STMT-3.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -84,7 +88,7 @@
       -    'TES'.
       **********************************************************************
        01 SQL-STMT-4.
-           05 SQL-IPTR   POINTER.
+           05 SQL-IPTR   POINTER VALUE NULL.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -500,6 +504,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-1
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-1
                                SQLCA
@@ -519,6 +524,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-2
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-2
                                SQLCA
@@ -550,6 +556,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-3
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-3
                                SQLCA
@@ -607,6 +614,7 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-4
                                    SQLCA
+               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-4
                                SQLCA
@@ -641,7 +649,7 @@
            DISPLAY "Regresando a Menu Principal..."
            EXIT PROGRAM.
       **********************************************************************
-      *  : ESQL for GnuCOBOL/OpenCobol Version 2 (2021.05.29) Build May 29 2021
+      *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
 
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  BUFFER                   IN USE CHAR(1024)
