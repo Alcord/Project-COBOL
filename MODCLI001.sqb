@@ -44,6 +44,7 @@
            05   DB-N-CTACTE                PIC 9(12).
            05   DB-COUNT-CTE               PIC 99.
            05   DB-AUX-DOC                 PIC X(12).
+           05   DB-N-CTES                  PIC 9(6).
 
            EXEC SQL
                END DECLARE SECTION
@@ -223,24 +224,31 @@
                    ACCEPT WS-OPTION-TD
            END-PERFORM
 
-           IF WS-OPTION-TD EQUAL 1
-               MOVE "DNI" TO WS-TIPO-DOC
-           ELSE IF WS-OPTION-TD EQUAL 2
-               MOVE "PAS" TO WS-TIPO-DOC
-           ELSE IF WS-OPTION-TD EQUAL 3
-               DISPLAY "Se cancela el registro nuevo..."
-               EXIT PARAGRAPH
-           END-IF
+           EVALUATE WS-OPTION-TD
+            WHEN 1
+                MOVE "DNI" TO WS-TIPO-DOC
+            WHEN 2
+                MOVE "PAS" TO WS-TIPO-DOC
+            WHEN 3
+                DISPLAY "Se cancela el registro nuevo..."
+                EXIT PARAGRAPH
+            WHEN OTHER
+                DISPLAY "Opción no válida."
+           END-EVALUATE
+
+
 
            DISPLAY "Inserte el documento: "
            ACCEPT WS-DOCUMENT
            *> VALIDAR DOCUENT
-
+      *>      CALL "VALCED" USING WS-DOCUMENT-VAL WS-DOCUMENT
 
            *> VALIDAR QUE NO EXISTA YA EL DOCUMENTO
            MOVE WS-DOCUMENT TO DB-AUX-DOC
 
-           IF DB-COUNT-CTE > 0
+           PERFORM 0235-CTE-EXIST
+
+           IF DB-N-CTES > 0
                DISPLAY "Documento ya registrado en el sistema..."
                PERFORM 0230-NEW-CLIENT
            END-IF
@@ -261,13 +269,17 @@
            DISPLAY "Inserte el correo:"
            ACCEPT WS-MAIL
 
-           CALL "VALEMAIL" USING WS-EMAIL-VAL WS-MAIL
-           IF WS-EMAIL-VAL = 0
-               DISPLAY "Correo invalido."
-               PERFORM 0230-NEW-CLIENT
-           END-IF
+      *>      CALL "VALEMAIL" USING WS-EMAIL-VAL WS-MAIL
+
+      *>      IF WS-EMAIL-VAL = 0
+      *>          DISPLAY "Correo invalido."
+      *>          PERFORM 0230-NEW-CLIENT
+      *>      END-IF
 
            *> WS-MAX-ID Indice para el siguiente registro
+
+
+
            EXEC SQL
                SELECT MAX(ID_CLIENTE) + 1
                INTO :WS-MAX-ID
@@ -301,7 +313,7 @@
                VALUES(
                     :ID-CLIENTE,
                     :TIPO-DOC,
-                    :DOCUMENT,
+                    TRIM(:DOCUMENT),
                     CURRENT_DATE,
                     :NOMBRE,
                     :APELLIDO,
@@ -489,16 +501,12 @@
        0235-CTE-EXIST.
 
            EXEC SQL
+               SELECT COUNT(*)
+                  INTO :DB-N-CTES
+                FROM banco.clientes
+               WHERE DOC_CLIENTE = TRIM(:DB-AUX-DOC)
+             END-EXEC.
 
-               SELECT COUNT (*)
-               INTO :DB-N-CTACTE
-               FROM banco.clientes
-               WHERE TRIM(DOC_CLIENTE) = TRIM(:DB-AUX-DOC)
-               INSERT INTO clientes
-
-           END-EXEC
-
-           PERFORM 0291-COMMIT.
        0235-END.
 
 
@@ -539,6 +547,7 @@
 
 
        0250-BAJA-CLIENTE.
+           INITIALIZE WS-DOCUMENT
            MOVE "Dar de Baja a Cliente" TO WS-TXT-TITLE(03:21)
            DISPLAY "+" WS-LINE "+"
            DISPLAY WS-TITLE
@@ -561,7 +570,7 @@
            END-IF
 
            IF TARJETA = 0  AND CREDITO = 0 AND HIPOTECA = 0
-               AND ACTIVA = 1 AND SALDO = 0.00
+               AND ACTIVA = 1 AND SALDO = 0
                PERFORM 0251-UPDATE-BAJA
            ELSE
                PERFORM 0243-ERROR-UPDATE
@@ -654,7 +663,9 @@
            IF ACTIVA = 1
            *>    DISPLAY "[38;5;120mCuenta activa[0m"
                DISPLAY " Cuenta activa"
-           ELSE
+           END-IF
+
+           IF ACTIVA = 0
                DISPLAY " Cuenta dada de baja "
                DISPLAY "En: " FUNCTION TRIM(FECHA-CIERRE)
            END-IF

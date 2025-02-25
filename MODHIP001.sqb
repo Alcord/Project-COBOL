@@ -1,49 +1,64 @@
-      ******************************************************************
-      * Author:
-      * Date:
-      * Purpose:
-      * Tectonics: cobc
-      ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. MODHIP.
+       PROGRAM-ID. MODHIP001.
        DATA DIVISION.
        FILE SECTION.
        WORKING-STORAGE SECTION.
 
        COPY "BD001".
+       COPY "CONF0223".
 
        EXEC SQL
            BEGIN DECLARE SECTION
-       END-EXEC
+       END-EXEC.
 
-       01  SEARCH-APELLI PIC X(10).
+       01  SEARCH-APELLI        PIC X(10).
 
        01  DB-VARS.
-           05  DB-DOCUMENT    PIC X(12).
-           05  BUFFER                  PIC X(1024).
-           05  ST-COUNT                PIC 9(6).
+           05  DB-DOCUMENT      PIC X(12).
+           05  BUFFER           PIC X(1024).
+           05  ST-COUNT         PIC 9(6).
            05  CLIENT.
-               10  ID-CLIENTE                PIC 9(3).
-               10  TIPO-DOC                  PIC X(3).
-               10  DOCUMENT                  PIC X(12).
-               10  NOMBRE                    PIC X(25).
-               10  APELLIDO                  PIC X(25).
-               10  HIPOTECA                  PIC 9(01).
-               10  ACTIVA                    PIC 9(01).
-               10  FECHA-CIERRE              PIC X(10).
+               10  ID-CLIENTE       PIC 9(3).
+               10  DOCUMENT         PIC X(12).
+               10  NOMBRE           PIC X(25).
+               10  APELLIDO         PIC X(25).
+               10  HIPOTECA         PIC 9(01).
+               10  ACTIVA           PIC 9(01).
+               10  FECHA-CIERRE     PIC X(10).
 
        01  DB-EXTRA-INFO.
-           05   DB-N-CTACTE                PIC 9(12).
-           05   DB-COUNT-CTE               PIC 99.
-           05   DB-AUX-DOC                 PIC X(12).
-           05   DB-MAX-ID                   PIC 9(3).
+           05  MAX-N-HIP        PIC 9(6).
+           05  DB-N-CUOTA       PIC 9(3).
+           05  DB-FECHA         PIC X(10).
+           05  DB-STATUS        PIC X(10).
+           05  DB-PMT           PIC 9(12)V99.
+           05  DB-INTERES       PIC 9(3)V99.
+
+       01  DB-HIPOTECA-RESUMEN.
+           05  DB-ID-HIPOTECA       PIC 9(3).
+           05  DB-ID-CLIENTE        PIC 9(3).
+           05  DB-FECHA-INICIO      PIC X(10).
+           05  DB-MONTO-ORIGINAL    PIC 9(12)V99.
+           05  DB-TASA-INTERES      PIC 9(3)V99.
+           05  DB-SALDO-ACTUAL      PIC 9(12)V99.
+           05  DB-FECHA-VENCIMIENTO PIC X(10).
+           05  DB-ESTADO            PIC X(10).
+
+       01  DB-CUOTA-DET.
+           05  DB-N-CUOTA-DET       PIC 9(3).
+           05  DB-FECHA-CUOTA       PIC X(10).
+           05  DB-ESTADO-CUOTA      PIC X(20).
+           05  DB-MONTO-CUOTA       PIC 9(12)V99.
+
+       01  DB-ESTADO-HIP        PIC X(10) VALUE "Activa".
+       01  DB-SUM-PAGO          PIC 9(12)V99 VALUE 0.
 
        EXEC SQL
            END DECLARE SECTION
-       END-EXEC
+       END-EXEC.
 
 
-       01 WS-MAINMENU.
+       01  WS-MAINMENU.
            05 WS-LINE PIC X(30) VALUE ALL "-".
            05 WS-TITLE.
                10 WS-LEFT-WALL PIC X(01) VALUE "|".
@@ -58,16 +73,44 @@
             10 WS-TXTMN3 PIC X(30) VALUE "3. Pagar Deudas".
             10 WS-TXTMN4 PIC X(30) VALUE "4. Salir".
 
-       01 WS-MENU-PAGO.
+       01  WS-MENU-PAGO.
            05 WS-PG-OPTION1 PIC X(30) VALUE "1. Pagar 1 o más cuotas".
            05 WS-PG-OPTION2 PIC X(30) VALUE "2. Pagar totalidad".
            05 WS-PG-OPTION3 PIC X(30) VALUE "3. Salir".
 
-       01 WS-OPTION PIC 9 VALUE 0.
+       01  WS-OPTION PIC 9 VALUE 0.
+
+       01  WS-INPUT-INFORMATION.
+           05 WS-MONTO     PIC 9(12)V99.
+           05 WS-GARANTIA  PIC 9(12)V99.
+           05 WS-CUOTAS    PIC 9(3).
+           05 WS-INTERES   PIC 9(3)V99.
+           05 WS-DOCUMENT  PIC X(12).
+
+       01  WS-CALC-FECHA.
+           05  WS-MES-ALFA         PIC X(2).
+           05  WS-YEAR-ALFA        PIC X(4).
+           05  WS-MES   PIC 99.
+           05  WS-YEAR  PIC 9(4).
+
+       01  WS-FECHA         PIC X(10) VALUE "2025-01-01".
+
+
+       01  WS-CALCULOS.
+           05  WS-N             PIC 9(3).  *> Contador de cuota
+           05  WS-I             PIC 9(3)V99.     *> Tasa de interés mensual
+           05  WS-GRTMIN        PIC 9(12)V99.   *> Valor min inmueble
+           05  WS-PMT           PIC 9(12)V99.    *> Valor de la cuota
+           05  WS-CT-PAY        PIC 9(3).   *> Numero de cuotas a pagar
+           05  WS-SUM-PAGO          PIC 9(12)V99 VALUE 0.   *> Acumulador del monto total pagado.
+           05  WS-COUNT             PIC 9(3) VALUE 0.        *> Contador de cuotas pagadas.
 
 
 
-       PROCEDURE DIVISION.
+       LINKAGE SECTION.
+       01  LK-OPTION     PIC 9.
+
+       PROCEDURE DIVISION USING LK-OPTION.
        PERFORM 0100-INICIO THRU 0210-HIPOTECAS.
        STOP RUN.
 
@@ -109,6 +152,11 @@
            DISPLAY "====================================".
        0111-END.
 
+      *>  0112-CREARCURSORES.
+      *>      PERFORM 0246-CURSOR-CUOTAS.
+
+      *>  0112-END.
+
        0100-END.
 
        0200-PROCEDIMIENTO.
@@ -133,7 +181,8 @@
                PERFORM 0240-CONSULT-DEUDA
                PERFORM 0210-HIPOTECAS
 
-           WHEN 3 DISPLAY "Realizar pago"
+           WHEN 3
+               DISPLAY "Realizar pago"
                PERFORM 0250-REALIZA-PAGO
                PERFORM 0210-HIPOTECAS
 
@@ -148,9 +197,18 @@
 
 
        0230-NEW-HIPOTECA.
+           DISPLAY "***************************************************"
            DISPLAY "Registrando Nueva hipoteca....."
+           DISPLAY "Ingrese -1 para salir"
+           DISPLAY "***************************************************"
 
            DISPLAY "Inserte el documento del cliente"
+           ACCEPT WS-DOCUMENT
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Hipotecas..."
+               EXIT PARAGRAPH
+           END-IF
 
            PERFORM 0232-SEARCH-CLIENT
 
@@ -166,69 +224,559 @@
 
            IF HIPOTECA = 1
                DISPLAY "El usurio ya tiene una hipoteca activa."
+               PERFORM 0230-NEW-HIPOTECA
            END-IF
 
+      *>   Valores para cuotas
+           DISPLAY "***************************************************"
+           DISPLAY "Datos para el prestamo"
+           DISPLAY "Para cancelar inserte un numero negativo"
+           DISPLAY "***************************************************"
 
            DISPLAY "Ingrese el monto de la hipoteca"
+           ACCEPT WS-MONTO
 
+           IF WS-MONTO < 0
+               DISPLAY "Regresando a Menu Hipotecas..."
+               EXIT PARAGRAPH
+           END-IF
 
-           DISPLAY "Inserte el calor aprox. de la garantia"
-
+           PERFORM 0234-GARANTIA-VAL
 
            DISPLAY "Ingrese el numero de cuotas"
+           ACCEPT WS-CUOTAS
 
+           IF WS-CUOTAS < 0
+               DISPLAY "Regresando a Menu Hipotecas..."
+               EXIT PARAGRAPH
+           END-IF
 
            DISPLAY "Ingrese el interes para esta hipoteca"
+           ACCEPT WS-INTERES
+
+           IF WS-INTERES < 0
+               DISPLAY "Regresando a Menu Hipotecas..."
+               EXIT PARAGRAPH
+           END-IF
+
+           MOVE  WS-MONTO  TO DB-MONTO-ORIGINAL
+           MOVE  WS-INTERES TO DB-INTERES
 
 
+      *>   Fecha actual
+           MOVE FUNCTION CURRENT-DATE (1:4) TO DB-FECHA(1:4)
+           MOVE "-"                      TO DB-FECHA(5:1)
+           MOVE FUNCTION CURRENT-DATE (5:2) TO DB-FECHA(6:2)
+           MOVE "-"                      TO DB-FECHA(8:1)
+           MOVE FUNCTION CURRENT-DATE (7:2) TO DB-FECHA(9:2)
+
+      *>      DISPLAY "Fecha para la hipoteca: " DB-FECHA
+
+           PERFORM 0235-NUM-HIPOTECA
+
+           DISPLAY  MAX-N-HIP
 
            PERFORM 0231-CREAR-NUEVA-HIPOTECA
 
+           PERFORM 0236-ADD-HIP-CLITE
 
+           PERFORM 0237-REG-NEW-HIP.
 
        0230-END.
 
        0231-CREAR-NUEVA-HIPOTECA.
 
-           *> calculo de t
+           INITIALIZE WS-CALCULOS
+           MOVE "Pendiente" TO DB-STATUS
 
+           PERFORM 0233-ACTUALIZA-FECHA
+
+           MOVE DB-FECHA TO DB-FECHA-INICIO
+
+      * Calcular la tasa de interés mensual y el valor de la cuota.
+           IF WS-INTERES > 0
+               COMPUTE WS-I = WS-INTERES / 100 / 12
+               *> La fórmula de cuota (PMT) se puede expresar como:
+               *>   PMT = MONTO * WS-I / (1 - (1 + WS-I) ** (-WS-CUOTAS))
+               COMPUTE WS-PMT = WS-MONTO * WS-I
+               *> Se debe dividir por (1 - (1 + WS-I) ** (-WS-CUOTAS))
+              COMPUTE WS-PMT = WS-PMT / (1 - (1 + WS-I) ** (-WS-CUOTAS))
+           ELSE
+               COMPUTE WS-PMT = WS-MONTO / WS-CUOTAS
+           END-IF.
+
+           MOVE WS-PMT TO DB-PMT
+
+           DISPLAY "Generando cuotas de la hipoteca..."
+
+           PERFORM VARYING WS-N FROM 1 BY 1 UNTIL WS-N > WS-CUOTAS
+
+               MOVE WS-N TO DB-N-CUOTA
+
+               EXEC SQL
+                   INSERT INTO cuotas_hipoteca
+                     (ID_CLIENTE,
+                     ID_HIPOTECA,
+                     N_CUOTA,
+                     FECHA,
+                     ESTADO,
+                     MONTO_CUOTA)
+                   VALUES
+                     (:ID-CLIENTE,
+                     :MAX-N-HIP,
+                     :DB-N-CUOTA,
+                     :DB-FECHA,
+                     TRIM(:DB-STATUS),
+                     :DB-PMT)
+               END-EXEC
+
+               DISPLAY "Insertada cuota número: " DB-N-CUOTA
+               DISPLAY " con fecha: " WS-FECHA
+
+      * Actualizar WS-FECHA al primer día del siguiente mes.
+               PERFORM 0233-ACTUALIZA-FECHA
+
+           END-PERFORM
+
+           PERFORM 0291-COMMIT.
        0231-END.
 
        0232-SEARCH-CLIENT.
            MOVE WS-DOCUMENT TO DB-DOCUMENT
 
            EXEC SQL
-           SELECT  C.ID_CLIENTE,
-                   C.DOC_CLIENTE,
-                   C.NOMBRE_CLIENTE,
-                   C.APELLIDOS_CLIENTE,
-                   C.HIPOTECA,
-                   C.CTA_ACTIVA,
-                   C.FECHA_CIERRE
+               SELECT  C.ID_CLIENTE,
+                       C.DOC_CLIENTE,
+                       C.NOMBRE_CLIENTE,
+                       C.APELLIDOS_CLIENTE,
+                       C.HIPOTECA,
+                       C.CTA_ACTIVA,
+                       C.FECHA_CIERRE
 
-           INTO    :ID-CLIENTE,
-                   :DOCUMENT,
-                   :NOMBRE,
-                   :APELLIDO,
-                   :HIPOTECA,
-                   :ACTIVA,
-                   :FECHA-CIERRE
+                   INTO    :ID-CLIENTE,
+                       :DOCUMENT,
+                       :NOMBRE,
+                       :APELLIDO,
+                       :HIPOTECA,
+                       :ACTIVA,
+                       :FECHA-CIERRE
 
-           FROM banco.clientes C
-           WHERE C.DOC_CLIENTE = TRIM(:DB-DOCUMENT)
-           LIMIT 1
-           END-EXEC.
+                   FROM banco.clientes C
+               WHERE C.DOC_CLIENTE = TRIM(:DB-DOCUMENT)
+               LIMIT 1
+           END-EXEC
 
            PERFORM 0291-SQLSTATE-CHECK.
        0232-END.
 
+       0233-ACTUALIZA-FECHA.
+           INITIALIZE WS-CALC-FECHA
+      *> Formatear la fecha actual para obtener el primer día del mes siguiente.
+           MOVE DB-FECHA(1:4)       TO WS-FECHA(1:4)
+           MOVE DB-FECHA(1:4)       TO WS-YEAR-ALFA
+           MOVE '-'                   TO WS-FECHA(5:1)
+           MOVE DB-FECHA(6:2)       TO WS-FECHA(6:2)
+           MOVE DB-FECHA(6:2)       TO WS-MES-ALFA
+           MOVE '-'                   TO WS-FECHA(8:1)
+           MOVE "01"                  TO WS-FECHA(9:2)
+
+           MOVE WS-YEAR-ALFA         TO WS-YEAR
+           MOVE WS-MES-ALFA          TO WS-MES
+
+           ADD 1 TO WS-MES
+
+           IF WS-MES > 12
+              MOVE 1 TO WS-MES
+              ADD 1 TO WS-YEAR
+           END-IF
+
+           MOVE WS-YEAR              TO WS-FECHA(1:4)
+           MOVE WS-MES               TO WS-FECHA(6:2)
+           DISPLAY "Fecha formateada: " WS-FECHA
+           MOVE WS-FECHA TO DB-FECHA.
+       0233-END.
+
+       0234-GARANTIA-VAL.
+
+           DISPLAY "Inserte el valor aprox. de la garantia"
+           ACCEPT WS-GARANTIA
+
+           IF WS-GARANTIA < 0
+               DISPLAY "Regresando a Menu Hipotecas..."
+               EXIT PARAGRAPH
+           END-IF
+
+           COMPUTE WS-GRTMIN = WS-MONTO * (PORC-MIN-GRNTIA / 100)
+
+           PERFORM UNTIL WS-GARANTIA > WS-GRTMIN
+               PERFORM 0234-GARANTIA-VAL
+           END-PERFORM.
+
+       0234-END.
+
+       0235-NUM-HIPOTECA.
+           EXEC SQL
+               SELECT MAX(H.ID_HIPOTECA)
+
+               INTO    :MAX-N-HIP
+
+               FROM banco.hipotecas H
+
+           END-EXEC
+
+           IF MAX-N-HIP = 0
+               MOVE 1 TO MAX-N-HIP
+           ELSE
+               ADD 1 TO MAX-N-HIP
+           END-IF.
+       0235-END.
+
+       0236-ADD-HIP-CLITE.
+
+           EXEC SQL
+               UPDATE CLIENTES
+               SET  HIPOTECA = 1
+               WHERE ID_CLIENTE =: ID-CLIENTE
+           END-EXEC
+
+           PERFORM 0291-COMMIT.
+
+      *>      DISPLAY "Se actualizo hip = Si".
+       0236-END.
+
+       0237-REG-NEW-HIP.
+
+           EXEC SQL
+               INSERT INTO banco.hipotecas
+                 (ID_HIPOTECA,
+                  ID_CLIENTE,
+                  FECHA_INICIO,
+                  MONTO_ORIGINAL,
+                  TASA_INTERES,
+                  SALDO_ACTUAL,
+                  FECHA_VENCIMIENTO,
+                  ESTADO)
+               VALUES
+                 (:MAX-N-HIP,
+                  :ID-CLIENTE,
+                  :DB-FECHA-INICIO,
+                  :DB-MONTO-ORIGINAL,
+                  :DB-INTERES,
+                  :DB-MONTO-ORIGINAL,
+                  :DB-FECHA,
+                  TRIM(:DB-ESTADO-HIP))
+           END-EXEC
+
+           PERFORM 0291-COMMIT
+
+           DISPLAY "Se reg nueva Hipoteca".
+
+
+       0237-END.
 
        0240-CONSULT-DEUDA.
+           DISPLAY "Consultar Hipoteca..."
+           DISPLAY "Ingrese -1 para salir"
+
+           DISPLAY "Inserte el documento del cliente"
+           ACCEPT WS-DOCUMENT
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Hipotecas..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT
+
+           IF SQLCODE NOT = 0
+               DISPLAY "Cliente no encontrado."
+               PERFORM 0240-CONSULT-DEUDA
+           END-IF
+
+           IF HIPOTECA = 0
+               DISPLAY "El usurio no tiene una hipoteca activa."
+               PERFORM 0240-CONSULT-DEUDA
+           END-IF
+
+           PERFORM 0243-HIPOTECA-RECIENTE
+
+           PERFORM 0241-RESUMEN-HIPOTECA.
+
        0240-END.
 
+       0241-RESUMEN-HIPOTECA.
+      *> Obtener el resumen de la hipoteca (para el valor máximo de ID_HIPOTECA obtenido)
+           PERFORM 0242-CONSULTAR-HIPOTECA
+
+      *> Mostrar el resumen de la hipoteca
+           PERFORM 0244-RESUMEN-HIPOT
+
+           EXEC SQL
+            OPEN C_CUOTAS
+           END-EXEC
+
+           DISPLAY "Detalle de cuotas:"
+               *> Imprimir cabecera del detalle de cuotas
+           DISPLAY "---------------------------------------------------"
+           DISPLAY "CUOTA    FECHA       ESTADO      MONTO"
+           DISPLAY "---------------------------------------------------"
+
+           EXEC SQL
+           DECLARE C_CUOTAS CURSOR FOR
+               SELECT N_CUOTA,
+                    FECHA,
+                    ESTADO,
+                    MONTO_CUOTA
+               FROM banco.cuotas_hipoteca
+               WHERE ID_HIPOTECA = :DB-ID-HIPOTECA
+               AND ID_CLIENTE  = :DB-ID-CLIENTE
+               ORDER BY N_CUOTA
+           END-EXEC
+
+           PERFORM UNTIL SQLCODE = 100
+               EXEC SQL
+                 FETCH C_CUOTAS INTO :DB-N-CUOTA-DET,
+                                      :DB-FECHA-CUOTA,
+                                      :DB-ESTADO-CUOTA,
+                                      :DB-MONTO-CUOTA
+               END-EXEC
+
+               IF SQLCODE = 0
+                 DISPLAY DB-N-CUOTA-DET "    "
+                         DB-FECHA-CUOTA "    "
+                         DB-ESTADO-CUOTA " "
+                         DB-MONTO-CUOTA
+               END-IF
+           END-PERFORM
+
+           EXEC SQL
+           CLOSE C_CUOTAS
+           END-EXEC
+
+           PERFORM 0210-HIPOTECAS.
+
+       0242-CONSULTAR-HIPOTECA.
+           EXEC SQL
+               SELECT ID_HIPOTECA,
+                    ID_CLIENTE,
+                    FECHA_INICIO,
+                    MONTO_ORIGINAL,
+                    TASA_INTERES,
+                    SALDO_ACTUAL,
+                    FECHA_VENCIMIENTO,
+                    ESTADO
+               INTO     :DB-ID-HIPOTECA,
+                        :DB-ID-CLIENTE,
+                        :DB-FECHA-INICIO,
+                        :DB-MONTO-ORIGINAL,
+                        :DB-TASA-INTERES,
+                        :DB-SALDO-ACTUAL,
+                        :DB-FECHA-VENCIMIENTO,
+                        :DB-ESTADO
+               FROM banco.hipotecas
+                   WHERE ID_HIPOTECA = :MAX-N-HIP
+           END-EXEC
+
+           PERFORM 0291-SQLSTATE-CHECK.
+
+       0242-END.
+
+
+       0243-HIPOTECA-RECIENTE.
+
+           EXEC SQL
+                   SELECT MAX(H.ID_HIPOTECA)
+
+                   INTO    :MAX-N-HIP
+
+                   FROM banco.hipotecas H
+
+                   WHERE ID_CLIENTE = :ID-CLIENTE
+
+                   AND ESTADO = TRIM(:DB-ESTADO-HIP)
+           END-EXEC
+
+           PERFORM 0291-SQLSTATE-CHECK.
+
+       0243-END.
+
+       0244-RESUMEN-HIPOT.
+           DISPLAY "------------------------------------"
+           DISPLAY "       RESUMEN DE LA HIPOTECA       "
+           DISPLAY "------------------------------------"
+           DISPLAY "ID HIPOTECA       : " DB-ID-HIPOTECA
+           DISPLAY "ID CLIENTE        : " DB-ID-CLIENTE
+           DISPLAY "FECHA INICIO      : " DB-FECHA-INICIO
+           DISPLAY "MONTO ORIGINAL    : " DB-MONTO-ORIGINAL
+           DISPLAY "TASA DE INTERES   : " DB-TASA-INTERES
+           DISPLAY "SALDO ACTUAL      : " DB-SALDO-ACTUAL
+           DISPLAY "FECHA VENCIMIENTO : " DB-FECHA-VENCIMIENTO
+           DISPLAY "ESTADO            : " DB-ESTADO
+           DISPLAY "------------------------------------".
+       0244-END.
+
+
        0250-REALIZA-PAGO.
+           INITIALIZE WS-OPTION
            DISPLAY "realizando pago ............".
+           DISPLAY "***************************************************"
+           DISPLAY "Pagos de prestamos"
+           DISPLAY "Para cancelar inserte un numero negativo"
+           DISPLAY "***************************************************"
+
+           DISPLAY "Inserte el documento del cliente"
+           ACCEPT WS-DOCUMENT
+
+           IF WS-DOCUMENT = "-1"
+               DISPLAY "Regresando a Menu Hipotecas..."
+               EXIT PARAGRAPH
+           END-IF
+
+           PERFORM 0232-SEARCH-CLIENT
+
+           IF SQLCODE NOT = 0
+               DISPLAY "Cliente no encontrado."
+               PERFORM 0250-REALIZA-PAGO
+           END-IF
+
+           IF HIPOTECA = 0
+               DISPLAY "El usurio no tiene una hipoteca activa."
+               PERFORM 0250-REALIZA-PAGO
+           END-IF
+
+           PERFORM 0243-HIPOTECA-RECIENTE
+
+           PERFORM 0242-CONSULTAR-HIPOTECA
+
+           PERFORM 0244-RESUMEN-HIPOT
+
+
+           PERFORM UNTIL WS-OPTION = 1 OR WS-OPTION = 2
+               OR WS-OPTION = 3
+
+               DISPLAY ".................................."
+               DISPLAY WS-PG-OPTION1
+               DISPLAY WS-PG-OPTION2
+               DISPLAY WS-PG-OPTION3
+               DISPLAY ".................................."
+               DISPLAY "Que desea Realizar?"
+               ACCEPT WS-OPTION
+
+           END-PERFORM
+
+
+           EVALUATE WS-OPTION
+               WHEN 1
+                   DISPLAY "Pagar cuotas"
+                   PERFORM 0251-PAGAR-CUOTAS
+                   EXIT PARAGRAPH
+
+               WHEN 2
+                   DISPLAY "Pagar en su totalidad"
+                   PERFORM 0253-CANCELAR-PRESTAMO
+                   EXIT PARAGRAPH
+
+               WHEN 3
+                   DISPLAY "Volviendo..."
+                   EXIT PARAGRAPH
+
+           END-EVALUATE.
+
+
        0250-END.
+
+
+       0251-PAGAR-CUOTAS.
+           INITIALIZE WS-COUNT WS-SUM-PAGO
+
+           DISPLAY "------------------------------------"
+           DISPLAY "Cuantas cuotas quiere pagar?"
+				      ACCEPT WS-CT-PAY
+           DISPLAY "------------------------------------"
+           DISPLAY "Iniciando proceso de pago de cuotas..."
+           DISPLAY "Se pagarán " WS-CT-PAY " cuota(s)"
+
+      *> Declarar un cursor exclusivo para el pago de cuotas (con 2 columnas)
+           EXEC SQL
+            DECLARE C_CUOTAS_PAY CURSOR FOR
+            SELECT N_CUOTA, MONTO_CUOTA
+            FROM banco.cuotas_hipoteca
+             WHERE ID_HIPOTECA = :DB-ID-HIPOTECA
+              AND ID_CLIENTE  = :ID-CLIENTE
+              AND ESTADO = 'Pendiente'
+              ORDER BY N_CUOTA
+             END-EXEC
+
+            EXEC SQL
+              OPEN C_CUOTAS_PAY
+            END-EXEC
+
+           PERFORM UNTIL WS-COUNT >= WS-CT-PAY OR SQLCODE = 100
+              EXEC SQL
+                FETCH C_CUOTAS_PAY INTO :DB-N-CUOTA-DET, :DB-MONTO-CUOTA
+              END-EXEC
+
+
+            IF SQLCODE = 0
+               ADD 1 TO WS-COUNT
+               ADD DB-MONTO-CUOTA TO WS-SUM-PAGO
+
+						 *> Actualizar la cuota a "Pagada"
+               EXEC SQL
+               UPDATE banco.cuotas_hipoteca
+               SET ESTADO = 'Pagada'
+               WHERE ID_HIPOTECA = :DB-ID-HIPOTECA
+               AND ID_CLIENTE  = :ID-CLIENTE
+               AND N_CUOTA     = :DB-N-CUOTA-DET
+               END-EXEC
+            END-IF
+           END-PERFORM
+
+           EXEC SQL
+            CLOSE C_CUOTAS_PAY
+           END-EXEC
+
+           MOVE WS-SUM-PAGO TO DB-SUM-PAGO
+      *> Actualizar la hipoteca, restando el total pagado del saldo actual
+
+           EXEC SQL
+              UPDATE banco.hipotecas
+              SET SALDO_ACTUAL = SALDO_ACTUAL - :DB-SUM-PAGO
+              WHERE ID_HIPOTECA = :DB-ID-HIPOTECA
+              AND ID_CLIENTE  = :ID-CLIENTE
+           END-EXEC
+
+           PERFORM 0291-COMMIT.
+
+           DISPLAY "Pago realizado: " WS-COUNT " cuota(s) pagadas"
+           DISPLAY "Por un total de " WS-SUM-PAGO
+           DISPLAY "------------------------------------".
+
+       0252-END.
+
+       0253-CANCELAR-PRESTAMO.
+            DISPLAY "Cancelando todo el préstamo..."
+
+       *> Actualizar todas las cuotas de la hipoteca a "Pagada"
+           EXEC SQL
+             UPDATE banco.cuotas_hipoteca
+             SET ESTADO = 'Pagada'
+             WHERE ID_HIPOTECA = :DB-ID-HIPOTECA
+             AND ID_CLIENTE = :ID-CLIENTE
+           END-EXEC
+
+      *> Actualizar la hipoteca: SALDO_ACTUAL = 0 y ESTADO = 'Pagada'
+           EXEC SQL
+           UPDATE banco.hipotecas
+           SET SALDO_ACTUAL = 0,
+            ESTADO = 'Pagada'
+            WHERE ID_HIPOTECA = :DB-ID-HIPOTECA
+            AND ID_CLIENTE = :ID-CLIENTE
+           END-EXEC
+
+           DISPLAY "Préstamo cancelado exitosamente.".
+
+       0253-END.
 
        0221-PRINT-MENU.
            DISPLAY "+" WS-LINE "+".
@@ -261,7 +809,7 @@
                END-IF
                MOVE SQLCODE TO RETURN-CODE
            ELSE
-               IF SQLCODE > 0 AND NOT = 100
+               IF SQLCODE > 0 AND SQLCODE NOT = 100
                    DISPLAY 'SQLSTATE='  SQLSTATE,
                            ', SQLCODE=' SQLCODE
                    IF SQLERRML > 0
@@ -286,4 +834,4 @@
            DISPLAY "CONEXION FINALIZADA.".
        0301-END.
 
-       END PROGRAM MODHIP.
+       END PROGRAM MODHIP001.

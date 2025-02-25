@@ -37,6 +37,10 @@
            05  WC-SALDO-TARJETA               PIC 9(12)V99.
            05  WC-SALDO-TOTAL                 PIC 9(12)V99.
 
+       01  DB-CONSOLIDADO-CLIENTE.
+           05  WC-CLIENTE-ACTIVO              PIC 9(10).
+           05  WC-CLIENTE-INACTIVO            PIC 9(10).
+
            EXEC SQL
                END DECLARE SECTION
            END-EXEC
@@ -98,8 +102,9 @@
            05 WS-IM-SALDO-HIPOTECA                PIC ZZZZZZ9.99-.
            05 WS-IM-SALDO-TARJETA                 PIC ZZZZZZ9.99-.
            05 WS-IM-NRO-HIPOTECAS                 PIC ZZZZZZ9.
+           05 WS-IM-CLIENTE-ACTIVO                PIC ZZZZZ.
+           05 WS-IM-CLIENTE-INACTIVO              PIC ZZZZZ.
 
-       01  WS-ENCENDER                 PIC X(01).
        01  WS-OPCION                   PIC 9.
        01  WS-CONT                     PIC 999.
        01  WS-CONTX                    PIC 999.
@@ -122,9 +127,8 @@
            DISPLAY "===================================="
            DISPLAY "     REPORTE CIERRE MENSUAL         "
            DISPLAY "===================================="
-           DISPLAY "1 - Consolidacion de información".
-           DISPLAY "2 - Generar indicadores"
-           DISPLAY "3 - Salir"
+           DISPLAY "1 - Consolidacion de información e Indicadores".
+           DISPLAY "2 - Salir"
            DISPLAY "Seleccione una opción: "
            ACCEPT WS-OPCION
 
@@ -132,31 +136,26 @@
                WHEN 1
                    PERFORM 100-GENERAR-CONSOLIDADO
                WHEN 2
-                   PERFORM 200-GENERAR-INDICADORES
-               WHEN 3
                    PERFORM 0300-FIN
                WHEN OTHER
                    DISPLAY "Opción inválida, intente nuevamente."
            END-EVALUATE.
 
-       200-GENERAR-INDICADORES.
-           MOVE 'S' TO WS-ENCENDER.
-           PERFORM 310-APERTURA-ARCHIVO.
-           PERFORM 320-EXTRAE-CONSOLIDADO-CURSOR.
-           PERFORM 000-IMPRIME-CABECERA.
-           PERFORM 000-IMPRIME-DETALLE.
-           PERFORM 000-CIERRE-ARCHIVO.
-           PERFORM 100-MENU.
 
        320-EXTRAE-CONSOLIDADO-CURSOR.
            MOVE ZEROES TO WS-CONT WS-CONTX.
            INITIALIZE DB-CONSOLIDADO-DETALLE WS-INDICADORES-DETAIL.
+           MOVE ZEROES TO WC-SALDO-CTACTE
+                          WC-SALDO-HIPOTECA
+                          WC-SALDO-TARJETA
+                          WC-ID-CLIENTE.
+           MOVE SPACES TO WC-NOMBRE.
            EXEC SQL
                DECLARE CURSOR_CONSOLIDADO CURSOR FOR
                SELECT C.ID_CLIENTE, C.NOMBRE_CLIENTE,
                 COALESCE(CT.SALDO_ACTUAL, 0) SALDO_CTACTE,
                 COALESCE(H.SALDO_ACTUAL, 0) SALDO_HIPOTECA,
-                COALESCE(T.ACUM_MES - T.LIQUIDACION_MES, 0)SALDO_TARJETA
+                COALESCE(T.LIQUIDACION_MES, 0)SALDO_TARJETA
                 FROM CLIENTES C
                LEFT JOIN (SELECT MAX(ID_CTACTES) ID_CTACTES,
                                  MAX(ID_CLIENTE) ID_CLIENTE,
@@ -199,7 +198,7 @@
 
 
           *> Acumulación de totales
-              IF WS-ENCENDER = 'S' THEN
+
                  ADD WC-SALDO-CTACTE   TO WS-AC-SALDO-CTACTE
                  ADD WC-SALDO-HIPOTECA TO WS-AC-SALDO-HIPOTECA
                  ADD WC-SALDO-TARJETA  TO WS-AC-SALDO-TARJETA
@@ -216,7 +215,6 @@
                     ADD 1 TO WS-AC-NRO-TARJETA
                  END-IF
 
-              END-IF
 
            ELSE
                DISPLAY ' NO TIENE MAS FILAS LA TABLA DE DB'
@@ -229,7 +227,6 @@
            INITIALIZE CONT-INDICE.
            PERFORM VARYING WS-CONTX FROM 1 BY 1
                                            UNTIL WS-CONTX > WS-CONT
-
               STRING RPT-ID-CLIENTE  (WS-CONTX)     "|"
                      RPT-NOMBRE      (WS-CONTX)     "  | "
                      RPT-SALDO-CTACTE(WS-CONTX)     "  | "
@@ -237,14 +234,13 @@
                      RPT-SALDO-TARJETA (WS-CONTX)   "  |"
                   INTO RPT-DETALLE-CLI
 
-              DISPLAY RPT-DETALLE-CLI
+              DISPLAY RPT-DETALLE-CLI(1:100)
               WRITE RPT-DETALLE-CLI
            END-PERFORM
              MOVE SPACES TO RPT-DETALLE-CLI
              STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
              WRITE RPT-DETALLE-CLI
              DISPLAY RPT-DETALLE-CLI
-             IF WS-ENCENDER = 'S' THEN
 
                MOVE WS-AC-SALDO-CTACTE    TO WS-IM-SALDO-CTACTE
                MOVE WS-AC-SALDO-HIPOTECA  TO WS-IM-SALDO-HIPOTECA
@@ -258,6 +254,8 @@
            DISPLAY " CREDITO OTORGADO   |    " WS-IM-SALDO-HIPOTECA
            DISPLAY " CUENTA CORRIENTE   |    " WS-IM-SALDO-CTACTE
            DISPLAY " SALDO TOTAL TARJETA|    " WS-IM-SALDO-TARJETA
+           DISPLAY " CLIENTE ACTIVO     |    " WS-IM-CLIENTE-ACTIVO
+           DISPLAY " CLIENTE INACTIVO   |    " WS-IM-CLIENTE-INACTIVO
            DISPLAY "***************************************************"
 
             WRITE RPT-DETALLE-CLI
@@ -288,11 +286,21 @@
                  INTO RPT-DETALLE-CLI
                 WRITE RPT-DETALLE-CLI
 
-            WRITE RPT-DETALLE-CLI
-            FROM "***************************************"
-           MOVE SPACES TO RPT-DETALLE-CLI
+             MOVE SPACES TO RPT-DETALLE-CLI
+             STRING  " CLIENTE ACTIVO     |"WS-IM-CLIENTE-ACTIVO"|  "
+                                                    "      0.00"
+                 INTO RPT-DETALLE-CLI
+                WRITE RPT-DETALLE-CLI
 
-           END-IF.
+             MOVE SPACES TO RPT-DETALLE-CLI
+             STRING  " CLIENTE INACTIVO   |"WS-IM-CLIENTE-INACTIVO"|  "
+                                                    "      0.00"
+                 INTO RPT-DETALLE-CLI
+                WRITE RPT-DETALLE-CLI
+            WRITE RPT-DETALLE-CLI
+
+            FROM "***************************************"
+           MOVE SPACES TO RPT-DETALLE-CLI.
 
        000-CIERRE-ARCHIVO.
            CLOSE RPT-FILE-DETAIL.
@@ -356,10 +364,26 @@
                    INTO :WT-PERIODO
                  FROM DUAL
            END-EXEC.
+       330-EXTRAE-TOTAL-CLIENTE.
+           MOVE ZEROES TO WS-IM-CLIENTE-ACTIVO WS-IM-CLIENTE-INACTIVO
+           EXEC SQL
+             SELECT
+                SUM(CASE WHEN CTA_ACTIVA = 1 THEN 1 ELSE 0 END)
+                                                    TOTAL_ACTIVAS,
+                SUM(CASE WHEN CTA_ACTIVA = 0 THEN 1 ELSE 0 END)
+                                                    TOTAL_INACTIVAS
+             INTO :WC-CLIENTE-ACTIVO,
+                  :WC-CLIENTE-INACTIVO
+            FROM BANCO.CLIENTES
+           END-EXEC.
+
+           MOVE WC-CLIENTE-ACTIVO    TO WS-IM-CLIENTE-ACTIVO.
+           MOVE WC-CLIENTE-INACTIVO  TO WS-IM-CLIENTE-INACTIVO.
+
 
        100-GENERAR-CONSOLIDADO.
-           MOVE 'N' TO WS-ENCENDER.
            PERFORM 310-APERTURA-ARCHIVO.
+           PERFORM 330-EXTRAE-TOTAL-CLIENTE.
            PERFORM 320-EXTRAE-CONSOLIDADO-CURSOR.
            PERFORM 000-IMPRIME-CABECERA.
            PERFORM 000-IMPRIME-DETALLE.

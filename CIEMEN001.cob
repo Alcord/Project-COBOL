@@ -24,42 +24,38 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
-           05 SQLVERSN PIC 99 VALUE 03.
-           05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
+           05 SQLVERSN PIC 99 VALUE 02.
+           05 SQLCODE  PIC S9(9) COMP-5.
            05 SQLERRM.
-               49 SQLERRML PIC S9(4) COMP-5 VALUE ZERO.
+               49 SQLERRML PIC S9(4) COMP-5.
                49 SQLERRMC PIC X(486).
-           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5 VALUE ZERO.
-           05 FILLER   PIC X(4).
-           05 SQL-HCONN USAGE POINTER VALUE NULL.
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
        01 SQLV.
            05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 5.
-           05 SQL-COUNT  PIC S9(9) COMP-5 VALUE ZERO.
-           05 SQL-ADDR   POINTER OCCURS 5 TIMES VALUE NULL.
-           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 5 TIMES VALUE ZERO.
+           05 SQL-COUNT  PIC S9(9) COMP-5.
+           05 SQL-ADDR   POINTER OCCURS 5 TIMES.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 5 TIMES.
            05 SQL-TYPE   PIC X OCCURS 5 TIMES.
            05 SQL-PREC   PIC X OCCURS 5 TIMES.
       **********************************************************************
        01 SQL-STMT-0.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE 'C'.
+           05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 468.
-           05 SQL-STMT   PIC X(468) VALUE 'SELECT C.ID_CLIENTE,C.NOMBRE_
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 455.
+           05 SQL-STMT   PIC X(455) VALUE 'SELECT C.ID_CLIENTE,C.NOMBRE_
       -    'CLIENTE,COALESCE(CT.SALDO_ACTUAL,0) SALDO_CTACTE,COALESCE(H.
-      -    'SALDO_ACTUAL,0) SALDO_HIPOTECA,COALESCE(T.ACUM_MES - T.LIQUI
-      -    'DACION_MES,0)SALDO_TARJETA FROM CLIENTES C LEFT JOIN (SELECT
-      -    ' MAX(ID_CTACTES) ID_CTACTES,MAX(ID_CLIENTE) ID_CLIENTE,MAX(S
-      -    'ALDO_ACTUAL) SALDO_ACTUAL FROM CTACTES GROUP BY ID_CLIENTE) 
-      -    'CT ON C.ID_CLIENTE = CT.ID_CLIENTE LEFT JOIN HIPOTECAS H ON 
-      -    'C.ID_CLIENTE = H.ID_CLIENTE LEFT JOIN TARJETAS T ON C.ID_CLI
-      -    'ENTE = T.ID_CLIENTE'.
-           05 SQL-CNAME  PIC X(18) VALUE 'CURSOR_CONSOLIDADO'.
-           05 FILLER     PIC X VALUE LOW-VALUE.
+      -    'SALDO_ACTUAL,0) SALDO_HIPOTECA,COALESCE(T.LIQUIDACION_MES,0)
+      -    'SALDO_TARJETA FROM CLIENTES C LEFT JOIN (SELECT MAX(ID_CTACT
+      -    'ES) ID_CTACTES,MAX(ID_CLIENTE) ID_CLIENTE,MAX(SALDO_ACTUAL) 
+      -    'SALDO_ACTUAL FROM CTACTES GROUP BY ID_CLIENTE) CT ON C.ID_CL
+      -    'IENTE = CT.ID_CLIENTE LEFT JOIN HIPOTECAS H ON C.ID_CLIENTE 
+      -    '= H.ID_CLIENTE LEFT JOIN TARJETAS T ON C.ID_CLIENTE = T.ID_C
+      -    'LIENTE'.
       **********************************************************************
        01 SQL-STMT-1.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -68,7 +64,7 @@
       -    'RDATE()),''%d/%m/%Y'') FROM DUAL'.
       **********************************************************************
        01 SQL-STMT-2.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -77,7 +73,18 @@
       -    'CURDATE())),'' '',YEAR(CURDATE())) FROM DUAL'.
       **********************************************************************
        01 SQL-STMT-3.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE SPACE.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 152.
+           05 SQL-STMT   PIC X(152) VALUE 'SELECT SUM(CASE WHEN CTA_ACTI
+      -    'VA = 1 THEN 1 ELSE 0 END) TOTAL_ACTIVAS,SUM(CASE WHEN CTA_AC
+      -    'TIVA = 0 THEN 1 ELSE 0 END) TOTAL_INACTIVAS FROM BANCO.CLIEN
+      -    'TES'.
+      **********************************************************************
+       01 SQL-STMT-4.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -90,6 +97,8 @@
            05 SQL-VAR-0005  PIC S9(13)V9(2) COMP-3.
            05 SQL-VAR-0006  PIC S9(13)V9(2) COMP-3.
            05 SQL-VAR-0007  PIC S9(13)V9(2) COMP-3.
+           05 SQL-VAR-0009  PIC S9(11) COMP-3.
+           05 SQL-VAR-0010  PIC S9(11) COMP-3.
       *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
       **********************************************************************
        COPY "BD001".
@@ -116,6 +125,10 @@
            05  WC-SALDO-HIPOTECA              PIC 9(12)V99.
            05  WC-SALDO-TARJETA               PIC 9(12)V99.
            05  WC-SALDO-TOTAL                 PIC 9(12)V99.
+
+       01  DB-CONSOLIDADO-CLIENTE.
+           05  WC-CLIENTE-ACTIVO              PIC 9(10).
+           05  WC-CLIENTE-INACTIVO            PIC 9(10).
 
       *    EXEC SQL
       *        END DECLARE SECTION
@@ -178,8 +191,9 @@
            05 WS-IM-SALDO-HIPOTECA                PIC ZZZZZZ9.99-.
            05 WS-IM-SALDO-TARJETA                 PIC ZZZZZZ9.99-.
            05 WS-IM-NRO-HIPOTECAS                 PIC ZZZZZZ9.
+           05 WS-IM-CLIENTE-ACTIVO                PIC ZZZZZ.
+           05 WS-IM-CLIENTE-INACTIVO              PIC ZZZZZ.
 
-       01  WS-ENCENDER                 PIC X(01).
        01  WS-OPCION                   PIC 9.
        01  WS-CONT                     PIC 999.
        01  WS-CONTX                    PIC 999.
@@ -202,9 +216,8 @@
            DISPLAY "===================================="
            DISPLAY "     REPORTE CIERRE MENSUAL         "
            DISPLAY "===================================="
-           DISPLAY "1 - Consolidacion de información".
-           DISPLAY "2 - Generar indicadores"
-           DISPLAY "3 - Salir"
+           DISPLAY "1 - Consolidacion de información e Indicadores".
+           DISPLAY "2 - Salir"
            DISPLAY "Seleccione una opción: "
            ACCEPT WS-OPCION
 
@@ -212,31 +225,26 @@
                WHEN 1
                    PERFORM 100-GENERAR-CONSOLIDADO
                WHEN 2
-                   PERFORM 200-GENERAR-INDICADORES
-               WHEN 3
                    PERFORM 0300-FIN
                WHEN OTHER
                    DISPLAY "Opción inválida, intente nuevamente."
            END-EVALUATE.
 
-       200-GENERAR-INDICADORES.
-           MOVE 'S' TO WS-ENCENDER.
-           PERFORM 310-APERTURA-ARCHIVO.
-           PERFORM 320-EXTRAE-CONSOLIDADO-CURSOR.
-           PERFORM 000-IMPRIME-CABECERA.
-           PERFORM 000-IMPRIME-DETALLE.
-           PERFORM 000-CIERRE-ARCHIVO.
-           PERFORM 100-MENU.
 
        320-EXTRAE-CONSOLIDADO-CURSOR.
            MOVE ZEROES TO WS-CONT WS-CONTX.
            INITIALIZE DB-CONSOLIDADO-DETALLE WS-INDICADORES-DETAIL.
+           MOVE ZEROES TO WC-SALDO-CTACTE
+                          WC-SALDO-HIPOTECA
+                          WC-SALDO-TARJETA
+                          WC-ID-CLIENTE.
+           MOVE SPACES TO WC-NOMBRE.
       *    EXEC SQL
       *        DECLARE CURSOR_CONSOLIDADO CURSOR FOR
       *        SELECT C.ID_CLIENTE, C.NOMBRE_CLIENTE,
       *         COALESCE(CT.SALDO_ACTUAL, 0) SALDO_CTACTE,
       *         COALESCE(H.SALDO_ACTUAL, 0) SALDO_HIPOTECA,
-      *         COALESCE(T.ACUM_MES - T.LIQUIDACION_MES, 0)SALDO_TARJETA
+      *         COALESCE(T.LIQUIDACION_MES, 0)SALDO_TARJETA
       *         FROM CLIENTES C
       *        LEFT JOIN (SELECT MAX(ID_CTACTES) ID_CTACTES,
       *                          MAX(ID_CLIENTE) ID_CLIENTE,
@@ -320,7 +328,7 @@
 
 
           *> Acumulación de totales
-              IF WS-ENCENDER = 'S' THEN
+
                  ADD WC-SALDO-CTACTE   TO WS-AC-SALDO-CTACTE
                  ADD WC-SALDO-HIPOTECA TO WS-AC-SALDO-HIPOTECA
                  ADD WC-SALDO-TARJETA  TO WS-AC-SALDO-TARJETA
@@ -337,7 +345,6 @@
                     ADD 1 TO WS-AC-NRO-TARJETA
                  END-IF
 
-              END-IF
 
            ELSE
                DISPLAY ' NO TIENE MAS FILAS LA TABLA DE DB'
@@ -353,7 +360,6 @@
            INITIALIZE CONT-INDICE.
            PERFORM VARYING WS-CONTX FROM 1 BY 1
                                            UNTIL WS-CONTX > WS-CONT
-
               STRING RPT-ID-CLIENTE  (WS-CONTX)     "|"
                      RPT-NOMBRE      (WS-CONTX)     "  | "
                      RPT-SALDO-CTACTE(WS-CONTX)     "  | "
@@ -361,14 +367,13 @@
                      RPT-SALDO-TARJETA (WS-CONTX)   "  |"
                   INTO RPT-DETALLE-CLI
 
-              DISPLAY RPT-DETALLE-CLI
+              DISPLAY RPT-DETALLE-CLI(1:100)
               WRITE RPT-DETALLE-CLI
            END-PERFORM
              MOVE SPACES TO RPT-DETALLE-CLI
              STRING WS-HEADER-00 WS-HEADER-01 INTO RPT-DETALLE-CLI
              WRITE RPT-DETALLE-CLI
              DISPLAY RPT-DETALLE-CLI
-             IF WS-ENCENDER = 'S' THEN
 
                MOVE WS-AC-SALDO-CTACTE    TO WS-IM-SALDO-CTACTE
                MOVE WS-AC-SALDO-HIPOTECA  TO WS-IM-SALDO-HIPOTECA
@@ -382,6 +387,8 @@
            DISPLAY " CREDITO OTORGADO   |    " WS-IM-SALDO-HIPOTECA
            DISPLAY " CUENTA CORRIENTE   |    " WS-IM-SALDO-CTACTE
            DISPLAY " SALDO TOTAL TARJETA|    " WS-IM-SALDO-TARJETA
+           DISPLAY " CLIENTE ACTIVO     |    " WS-IM-CLIENTE-ACTIVO
+           DISPLAY " CLIENTE INACTIVO   |    " WS-IM-CLIENTE-INACTIVO
            DISPLAY "***************************************************"
 
             WRITE RPT-DETALLE-CLI
@@ -412,11 +419,21 @@
                  INTO RPT-DETALLE-CLI
                 WRITE RPT-DETALLE-CLI
 
-            WRITE RPT-DETALLE-CLI
-            FROM "***************************************"
-           MOVE SPACES TO RPT-DETALLE-CLI
+             MOVE SPACES TO RPT-DETALLE-CLI
+             STRING  " CLIENTE ACTIVO     |"WS-IM-CLIENTE-ACTIVO"|  "
+                                                    "      0.00"
+                 INTO RPT-DETALLE-CLI
+                WRITE RPT-DETALLE-CLI
 
-           END-IF.
+             MOVE SPACES TO RPT-DETALLE-CLI
+             STRING  " CLIENTE INACTIVO   |"WS-IM-CLIENTE-INACTIVO"|  "
+                                                    "      0.00"
+                 INTO RPT-DETALLE-CLI
+                WRITE RPT-DETALLE-CLI
+            WRITE RPT-DETALLE-CLI
+
+            FROM "***************************************"
+           MOVE SPACES TO RPT-DETALLE-CLI.
 
        000-CIERRE-ARCHIVO.
            CLOSE RPT-FILE-DETAIL.
@@ -483,7 +500,6 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-1
                                    SQLCA
-               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-1
                                SQLCA
@@ -503,15 +519,51 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-2
                                    SQLCA
-               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-2
                                SQLCA
                    .
+       330-EXTRAE-TOTAL-CLIENTE.
+           MOVE ZEROES TO WS-IM-CLIENTE-ACTIVO WS-IM-CLIENTE-INACTIVO
+      *    EXEC SQL
+      *      SELECT
+      *         SUM(CASE WHEN CTA_ACTIVA = 1 THEN 1 ELSE 0 END)
+      *                                             TOTAL_ACTIVAS,
+      *         SUM(CASE WHEN CTA_ACTIVA = 0 THEN 1 ELSE 0 END)
+      *                                             TOTAL_INACTIVAS
+      *      INTO :WC-CLIENTE-ACTIVO,
+      *           :WC-CLIENTE-INACTIVO
+      *     FROM BANCO.CLIENTES
+      *    END-EXEC.
+           IF SQL-PREP OF SQL-STMT-3 = 'N'
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 SQL-VAR-0009
+               MOVE '3' TO SQL-TYPE(1)
+               MOVE 6 TO SQL-LEN(1)
+               MOVE X'00' TO SQL-PREC(1)
+               SET SQL-ADDR(2) TO ADDRESS OF
+                 SQL-VAR-0010
+               MOVE '3' TO SQL-TYPE(2)
+               MOVE 6 TO SQL-LEN(2)
+               MOVE X'00' TO SQL-PREC(2)
+               MOVE 2 TO SQL-COUNT
+               CALL 'OCSQLPRE' USING SQLV
+                                   SQL-STMT-3
+                                   SQLCA
+           END-IF
+           CALL 'OCSQLEXE' USING SQL-STMT-3
+                               SQLCA
+           MOVE SQL-VAR-0009 TO WC-CLIENTE-ACTIVO
+           MOVE SQL-VAR-0010 TO WC-CLIENTE-INACTIVO
+                   .
+
+           MOVE WC-CLIENTE-ACTIVO    TO WS-IM-CLIENTE-ACTIVO.
+           MOVE WC-CLIENTE-INACTIVO  TO WS-IM-CLIENTE-INACTIVO.
+
 
        100-GENERAR-CONSOLIDADO.
-           MOVE 'N' TO WS-ENCENDER.
            PERFORM 310-APERTURA-ARCHIVO.
+           PERFORM 330-EXTRAE-TOTAL-CLIENTE.
            PERFORM 320-EXTRAE-CONSOLIDADO-CURSOR.
            PERFORM 000-IMPRIME-CABECERA.
            PERFORM 000-IMPRIME-DETALLE.
@@ -546,18 +598,17 @@
       *    EXEC SQL
       *       SELECT DATABASE() INTO :BUFFER
       *    END-EXEC
-           IF SQL-PREP OF SQL-STMT-3 = 'N'
+           IF SQL-PREP OF SQL-STMT-4 = 'N'
                SET SQL-ADDR(1) TO ADDRESS OF
                  BUFFER
                MOVE 'X' TO SQL-TYPE(1)
                MOVE 1024 TO SQL-LEN(1)
                MOVE 1 TO SQL-COUNT
                CALL 'OCSQLPRE' USING SQLV
-                                   SQL-STMT-3
+                                   SQL-STMT-4
                                    SQLCA
-               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
-           CALL 'OCSQLEXE' USING SQL-STMT-3
+           CALL 'OCSQLEXE' USING SQL-STMT-4
                                SQLCA
 
            DISPLAY 'BASE DE DATOS ACTUAL: ' BUFFER
@@ -590,12 +641,15 @@
            DISPLAY "Regresando a Menu Principal..."
            EXIT PROGRAM.
       **********************************************************************
-      *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
+      *  : ESQL for GnuCOBOL/OpenCobol Version 2 (2021.05.29) Build May 29 2021
 
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  BUFFER                   IN USE CHAR(1024)
       *  CTACTE               NOT IN USE
       *  CURSOR_CONSOLIDADO       IN USE CURSOR
+      *  DB-CONSOLIDADO-CLIENTE NOT IN USE
+      *  DB-CONSOLIDADO-CLIENTE.WC-CLIENTE-ACTIVO NOT IN USE
+      *  DB-CONSOLIDADO-CLIENTE.WC-CLIENTE-INACTIVO NOT IN USE
       *  DB-CONSOLIDADO-DETALLE NOT IN USE
       *  DB-CONSOLIDADO-DETALLE.WC-ID-CLIENTE NOT IN USE
       *  DB-CONSOLIDADO-DETALLE.WC-NOMBRE NOT IN USE
@@ -611,6 +665,8 @@
       *  DB-VARS.WS-NEWID-CTACTE NOT IN USE
       *  DB-VARS.WT-MONTO     NOT IN USE
       *  ST-COUNT             NOT IN USE
+      *  WC-CLIENTE-ACTIVO        IN USE THROUGH TEMP VAR SQL-VAR-0009 DECIMAL(11,0)
+      *  WC-CLIENTE-INACTIVO      IN USE THROUGH TEMP VAR SQL-VAR-0010 DECIMAL(11,0)
       *  WC-ID-CLIENTE            IN USE THROUGH TEMP VAR SQL-VAR-0004 DECIMAL(11,0)
       *  WC-NOMBRE                IN USE CHAR(25)
       *  WC-SALDO-CTACTE          IN USE THROUGH TEMP VAR SQL-VAR-0005 DECIMAL(15,2)

@@ -69,6 +69,7 @@
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 4
                    DISPLAY "Modulo Hipotecas..."
+                   CALL 'MODHIP001' USING WS-OPTION
                    PERFORM 0200-PROCEDIMIENTO
                WHEN 5
                    DISPLAY "Modulo Proceso Batch..."

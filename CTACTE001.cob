@@ -32,24 +32,22 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
-           05 SQLVERSN PIC 99 VALUE 03.
-           05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
+           05 SQLVERSN PIC 99 VALUE 02.
+           05 SQLCODE  PIC S9(9) COMP-5.
            05 SQLERRM.
-               49 SQLERRML PIC S9(4) COMP-5 VALUE ZERO.
+               49 SQLERRML PIC S9(4) COMP-5.
                49 SQLERRMC PIC X(486).
-           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5 VALUE ZERO.
-           05 FILLER   PIC X(4).
-           05 SQL-HCONN USAGE POINTER VALUE NULL.
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
        01 SQLV.
            05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 6.
-           05 SQL-COUNT  PIC S9(9) COMP-5 VALUE ZERO.
-           05 SQL-ADDR   POINTER OCCURS 6 TIMES VALUE NULL.
-           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 6 TIMES VALUE ZERO.
+           05 SQL-COUNT  PIC S9(9) COMP-5.
+           05 SQL-ADDR   POINTER OCCURS 6 TIMES.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 6 TIMES.
            05 SQL-TYPE   PIC X OCCURS 6 TIMES.
            05 SQL-PREC   PIC X OCCURS 6 TIMES.
       **********************************************************************
        01 SQL-STMT-0.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -66,21 +64,19 @@
       -    'ID_CLIENTE'.
       **********************************************************************
        01 SQL-STMT-1.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE 'C'.
+           05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 249.
-           05 SQL-STMT   PIC X(249) VALUE 'SELECT FECHA_ULT_MOV,CASE WHE
-      -    'N IMPORTE_MOV > 0 THEN ''DEPOSITO'' ELSE ''EXTRACCION'' END 
-      -    'AS TIPO_MOV,IMPORTE_MOV,SALDO_ACTUAL FROM BANCO.CTACTES WHER
-      -    'E ID_CLIENTE = (SELECT ID_CLIENTE FROM BANCO.CLIENTES WHERE 
-      -    'DOC_CLIENTE =TRIM(?)) ORDER BY FECHA_ULT_MOV'.
-           05 SQL-CNAME  PIC X(7) VALUE 'CUR_ALL'.
-           05 FILLER     PIC X VALUE LOW-VALUE.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 253.
+           05 SQL-STMT   PIC X(253) VALUE 'SELECT FECHA_MOV,CASE WHEN IM
+      -    'PORTE_MOV > 0 THEN ''DEPOSITO'' ELSE ''EXTRACCION'' END AS T
+      -    'IPO_MOV,IMPORTE_MOV,SALDO_ACTUAL FROM BANCO.MOVIMIENTOS_CTAC
+      -    'TES WHERE ID_CLIENTE = (SELECT ID_CLIENTE FROM BANCO.CLIENTE
+      -    'S WHERE DOC_CLIENTE =TRIM(?)) ORDER BY FECHA_MOV'.
       **********************************************************************
        01 SQL-STMT-2.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
@@ -89,7 +85,7 @@
       -    ' FROM DUAL;'.
       **********************************************************************
        01 SQL-STMT-3.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 1.
@@ -98,7 +94,7 @@
       -    'OM CLIENTES WHERE DOC_CLIENTE =TRIM(?) LIMIT 1),''N'')'.
       **********************************************************************
        01 SQL-STMT-4.
-           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-IPTR   POINTER.
            05 SQL-PREP   PIC X VALUE 'N'.
            05 SQL-OPT    PIC X VALUE SPACE.
            05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
@@ -148,21 +144,17 @@
       *        END DECLARE SECTION
       *    END-EXEC
 
-       01  WS-HEADER-P0  PIC X(80) VALUE
-           "*--------------------------------------------------------*".
+       01  WS-HEADER-P0  PIC X(60) VALUE ALL '-'.
 
        01  WS-HEADER-P1  PIC X(80) VALUE
            "NOMBRE        APELLIDOS       FECHA_ULT_MOV   SALDO_ACTUAL".
-
-       01  WS-HEADER-P2  PIC X(80) VALUE
-           "*--------------------------------------------------------*".
 
        01  WS-HEADER             PIC X(80) VALUE
            "FECHA       TIPO MOVIMIENTO   IMPORTE     SALDO ACTUAL".
        01  WS-HEADER2             PIC X(80) VALUE
            "************GENERACION DE EXTRACTO DETALLADO**********".
-       01  WS-HEADER3             PIC X(80) VALUE
-           "******************************************************".
+
+       01  WS-HEADER3  PIC X(60) VALUE ALL '*'.
        01  PRTEC                 PIC X(100).
 
        01  WS-EXTRACTO-DETAIL.
@@ -182,7 +174,7 @@
        01  WS-SALDO                    PIC ZZZZZZ9.99.
        01  WS-MONTO                    PIC S9(8)V99.
        01  WS-DOC-CLI                  PIC X(12).
-       01  WS-TIPO-MOVIMIENTO          PIC X(01).
+       01  WS-TIPO-MOVIMIENTO          PIC X(02).
        01  WX-TIPO-MOVIMIENTO          PIC 9.
        01  WS-IMPORTE-FORM             PIC ZZZZZZ9.99-.
        01  WS-SALDO-FORM               PIC ZZZZZZ9.99-.
@@ -229,10 +221,7 @@
            PERFORM 100-EXISTE-CLIENTE
 
            IF WS-EXISTE-CLIENTE = 'N' THEN
-              DISPLAY "Ingrese (-1) para salir"
-              DISPLAY "Favor, Ingresar Nuevamente: "
               IF WS-DOC-CLI = "-1" THEN
-                 DISPLAY "Regresando al menu principal: "
                  PERFORM 0300-FIN
               END-IF
               PERFORM 100-CONSULTA-CLIENTE
@@ -259,20 +248,19 @@
            DISPLAY "Ingrese (-1) para salir"
            DISPLAY "Ingrese tipo de movim (D=Depósito, E=Extracción): "
            ACCEPT WS-TIPO-MOVIMIENTO
-
            IF WS-TIPO-MOVIMIENTO NOT = 'D' AND
-                                     WS-TIPO-MOVIMIENTO NOT = 'E' THEN
+                                 WS-TIPO-MOVIMIENTO NOT = 'E' THEN
+               IF WS-TIPO-MOVIMIENTO = '-1' THEN
+                  DISPLAY "Regresando a Menu Clientes..."
+                  PERFORM 0300-FIN
+               END-IF
                DISPLAY "Tipo de movimien inválido. Debe ser 'D' o 'E'."
                MOVE SPACES TO WS-TIPO-MOVIMIENTO
                PERFORM 350-VALIDAR-TIPO
            END-IF.
 
-           IF WS-TIPO-MOVIMIENTO = "-1"
-               DISPLAY "Regresando a Menu Clientes..."
-               PERFORM 0300-FIN
-           END-IF.
-
        360-VALIDAR-MONTO.
+
            DISPLAY "Ingrese (-1) para salir"
            DISPLAY "Ingrese el monto:"
            ACCEPT WS-MONTO.
@@ -296,17 +284,12 @@
 
            END-IF.
 
-
-
        200-CONSULTAR-SALDO.
 
-           INITIALIZE WS-DOC-CLI
-           PERFORM 100-CONSULTA-CLIENTE
-           PERFORM 200-EXTRAE-INFO-SALDO
-           DISPLAY WS-HEADER-P0
-           DISPLAY WS-HEADER-P1
-           DISPLAY WS-HEADER-P2
-           DISPLAY RPT-DETALLE-CLI.
+           INITIALIZE WS-DOC-CLI.
+           PERFORM 100-CONSULTA-CLIENTE.
+           PERFORM 200-EXTRAE-INFO-SALDO.
+           PERFORM 100-MENU.
 
        200-EXTRAE-INFO-SALDO.
            MOVE WS-DOC-CLI TO WT-DOC-CLI.
@@ -364,7 +347,6 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-0
                                    SQLCA
-               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-0
                                SQLCA
@@ -375,23 +357,28 @@
            MOVE WS-APELLIDOS       TO RPT-APELLIDOS
            MOVE WS-FECHA-ULT-MOV   TO RPT-FECHA-ULT-MOV
            MOVE WS-SALDO-ACTUAL    TO RPT-SALDO-ACTUAL
-           MOVE RPT-SALDO-ACTUAL   TO WS-SALDO.
+           MOVE RPT-SALDO-ACTUAL   TO WS-SALDO
+
+           DISPLAY WS-HEADER-P0.
+           DISPLAY WS-HEADER-P1.
+           DISPLAY WS-HEADER-P0.
+           DISPLAY RPT-DETALLE-CLI.
 
        320-EXTRAE-EXTRATO-CURSOR.
            MOVE WS-DOC-CLI TO WT-DOC-CLI
       *    EXEC SQL
       *        DECLARE CUR_ALL CURSOR FOR
-      *    SELECT FECHA_ULT_MOV,
+      *    SELECT FECHA_MOV,
       *           CASE
       *               WHEN IMPORTE_MOV > 0 THEN 'DEPOSITO'
       *               ELSE 'EXTRACCION'
       *           END AS TIPO_MOV,
       *           IMPORTE_MOV, SALDO_ACTUAL
-      *    FROM BANCO.CTACTES
+      *    FROM BANCO.MOVIMIENTOS_CTACTES
       *    WHERE ID_CLIENTE = (SELECT ID_CLIENTE
       *                           FROM BANCO.CLIENTES
       *                          WHERE DOC_CLIENTE =TRIM(:WT-DOC-CLI))
-      *    ORDER BY FECHA_ULT_MOV
+      *    ORDER BY FECHA_MOV
       *    END-EXEC.
                    .
       *    EXEC SQL
@@ -522,7 +509,6 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-2
                                    SQLCA
-               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            MOVE WT-MONTO TO SQL-VAR-0003
            CALL 'OCSQLEXE' USING SQL-STMT-2
@@ -556,13 +542,10 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-3
                                    SQLCA
-               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-3
                                SQLCA
                    .
-
-       GENERAR-EXTRACTO.
 
        0100-INICIO.
       *-----------------------------------------------------------------
@@ -601,7 +584,6 @@
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-4
                                    SQLCA
-               SET SQL-HCONN OF SQLCA TO NULL
            END-IF
            CALL 'OCSQLEXE' USING SQL-STMT-4
                                SQLCA
@@ -636,7 +618,7 @@
            EXIT PROGRAM.
        END PROGRAM CTACTE001.
       **********************************************************************
-      *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.04.30) Build May 10 2024
+      *  : ESQL for GnuCOBOL/OpenCobol Version 2 (2021.05.29) Build May 29 2021
 
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  BUFFER                   IN USE CHAR(1024)

@@ -1,9 +1,3 @@
-      ******************************************************************
-      * Author:
-      * Date:
-      * Purpose:
-      * Tectonics: cobc
-      ******************************************************************
        IDENTIFICATION DIVISION.
        PROGRAM-ID. VALEMAIL.
        DATA DIVISION.
@@ -17,7 +11,7 @@
        01  LK-EMAIL    PIC X(40).
        01  LK-VAL-EMAIL  PIC 9.
 
-       PROCEDURE DIVISION USING LK-EMAIL LK-VAL-EMAIL.
+       PROCEDURE DIVISION USING LK-VAL-EMAIL LK-EMAIL .
        MAIN-PROCEDURE.
        INSPECT LK-EMAIL TALLYING WS-AT-SIGN FOR ALL '@'.
        INSPECT LK-EMAIL TALLYING WS-DOT FOR ALL '.'.
